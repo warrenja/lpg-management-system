@@ -18,6 +18,7 @@ const headerStyle = {
   fontSize: "20px",
   zIndex: 1200,
   userSelect: "none",
+  // eslint-disable-next-line no-dupe-keys
   color: "#fff",
 };
 
