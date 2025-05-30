@@ -1,0 +1,42 @@
+.inventory-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+  color: #222;
+}
+
+.inventory-container h2 {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.1rem;
+}
+
+.inventory-table thead tr {
+  background-color: #444;
+  color: white;
+  font-weight: 700;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.inventory-table tbody tr:hover {
+  background-color: #d1e7fd !important; /* Highlight on hover */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}

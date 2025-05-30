@@ -1,0 +1,26 @@
+.header {
+  height: 60px;
+  background-color: #1976d2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: white; /* Pure white font */
+}
+
+.header-profile {
+  font-size: 30px;
+  color: white; /* Pure white icon */
+  cursor: pointer;
+}
+
+.profile-icon {
+  color: white; /* Ensure icon stays white */
+}

@@ -1,0 +1,54 @@
+.orders-page {
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+
+.orders-page h2 {
+  color: #333;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.orders-table th {
+  background-color: #1976d2;
+  color: white;
+}
+
+/* Vivid row highlights for statuses */
+.status-delivered {
+  background-color: #28a745;
+  color: white;
+}
+
+.status-pending {
+  background-color: #fd7e14;
+  color: white;
+}
+
+.status-shipped {
+  background-color: #007bff;
+  color: white;
+}
+
+.status-in\ transit {
+  background-color: #6f42c1;
+  color: white;
+}
+
+.status-cancelled {
+  background-color: #dc3545;
+  color: white;
+}
