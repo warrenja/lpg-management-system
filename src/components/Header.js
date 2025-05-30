@@ -18,7 +18,7 @@ const headerStyle = {
   fontSize: "20px",
   zIndex: 1200,
   userSelect: "none",
-  color: "#fff", // pure white fonts
+  color: "#fff",
 };
 
 const profileDropdownStyle = {
