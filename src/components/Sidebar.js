@@ -18,6 +18,7 @@ const sidebarItems = [
   { name: "Inventory", path: "/inventory", icon: <FaBoxes /> },
   { name: "Sales", path: "/sales", icon: <FaCashRegister /> },
   { name: "Reports", path: "/reports", icon: <FaChartBar /> },
+  { name: "Deliveries", path: "/deliveries", icon: <FaClipboardList />, color: "#6a1b9a" },
   { name: "Add Data", path: "/add-data", icon: <FaPlus />, color: "#8e44ad" },
 ];
 
