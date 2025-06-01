@@ -11,7 +11,7 @@ import Inventory from "./pages/Inventory";
 import Sales from "./pages/Sales";
 import Reports from "./pages/Reports";
 import AddData from './pages/AddData'; // adjust the path if needed
-import Deliveries from "./Deliveries";
+import Deliveries from "./pages/Deliveries";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 
