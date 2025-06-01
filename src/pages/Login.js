@@ -1,43 +1,29 @@
+// src/pages/Login.js
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import { login } from "../auth";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState("user");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Simple hardcoded login logic (replace with real auth in future)
-    if (username === "janicemakena" && password === "Janice94") {
-      localStorage.setItem("loggedIn", "true");
-      navigate("/");
-    } else {
-      alert("Invalid credentials!");
-    }
+  const handleLogin = () => {
+    login(selectedRole);
+    navigate("/");
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleLogin} className="login-form">
-        <h2>Login</h2>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
+    <div style={{ padding: 40 }}>
+      <h2>Select Role and Login</h2>
+      <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
+        <option value="admin">Admin</option>
+        <option value="user">User</option>
+        <option value="driver">Driver</option>
+      </select>
+      <button onClick={handleLogin} style={{ marginLeft: 10 }}>
+        Login
+      </button>
     </div>
   );
 }
