@@ -6,6 +6,7 @@ import {
   FaBoxes,
   FaCashRegister,
   FaChartBar,
+  FaTruck,
   FaClipboardList
 } from "react-icons/fa";
 import {
@@ -33,6 +34,7 @@ const sidebarItems = [
   { name: "Sales", path: "/sales", icon: <FaCashRegister />, color: iconColors[2] },
   { name: "Reports", path: "/reports", icon: <FaChartBar />, color: iconColors[3] },
   { name: "Orders", path: "/orders", icon: <FaClipboardList />, color: iconColors[4] },
+  { name: "Deliveries", path: "/deliveries", icon: <FaTruck />, color: "#009688" },
 ];
 
 const pieData = [
