@@ -9,7 +9,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    login(selectedRole);
+    login(selectedRole, true);  // pass true to indicate sessionStorage usage
     navigate("/");
   };
 

@@ -1,16 +1,22 @@
 // src/auth.js
 
 // Mock login function (called after successful login)
-export function login(role) {
-  localStorage.setItem("role", role);
+// If useSession is true, store role in sessionStorage, else in localStorage
+export function login(role, useSession = false) {
+  if (useSession) {
+    sessionStorage.setItem("role", role);
+  } else {
+    localStorage.setItem("role", role);
+  }
 }
 
-// Logout function
+// Logout function - clear role from both storages just to be safe
 export function logout() {
   localStorage.removeItem("role");
+  sessionStorage.removeItem("role");
 }
 
-// Get the current user's role
+// Get the current user's role - check sessionStorage first, then localStorage
 export function currentUserRole() {
-  return localStorage.getItem("role");
+  return sessionStorage.getItem("role") || localStorage.getItem("role");
 }
