@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Orders.css";
-import AssignDriver from "./components/AssignDriver"; // Adjust path as needed
+import AssignDriver from "../components/AssignDriver";
 
 const initialOrders = [
   { id: 1, customerId: "david", customer: "David", item: "6kg Cylinder", amount: "KSh 1500", status: "Delivered", assignedDriver: "driver1" },
