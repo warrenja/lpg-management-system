@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaBars, FaUserCircle } from "react-icons/fa";
 import "./Header.css";
-import { currentUsername } from "../auth";
 
 const headerStyle = {
   height: "60px",
@@ -55,7 +54,8 @@ export default function Header({ onToggleSidebar }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
 
-  const username = currentUsername() || "Guest";
+  // Removed currentUsername import, hardcoded username
+  const username = "Guest";
 
   useEffect(() => {
     function handleClickOutside(event) {
