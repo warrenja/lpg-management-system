@@ -52,3 +52,47 @@
   background-color: #dc3545;
   color: white;
 }
+.orders-page {
+  padding: 20px;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.orders-table th {
+  background-color: #f0f0f0;
+}
+
+.order-form {
+  margin-bottom: 20px;
+}
+
+.order-form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.order-form select {
+  margin-left: 10px;
+}
+
+.order-form button {
+  margin-top: 10px;
+  padding: 5px 10px;
+}
+
+/* Optional status styling */
+.status-delivered { background-color: #e6ffed; }
+.status-pending { background-color: #fff7e6; }
+.status-shipped { background-color: #e6f0ff; }
+.status-cancelled { background-color: #ffe6e6; }
+.status-in\\ transit { background-color: #e0f7fa; }
