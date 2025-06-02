@@ -1,6 +1,6 @@
+// src/components/Header.js
 import React, { useState, useRef, useEffect } from "react";
 import { FaBars, FaUserCircle } from "react-icons/fa";
-import "./Header.css";
 
 const headerStyle = {
   height: "60px",
@@ -40,15 +40,13 @@ const dropdownItemStyle = {
 };
 
 function getGreeting() {
-  const now = new Date();
-  const hour = now.getHours();
-
+  const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
 
-export default function Header({ onToggleSidebar, username = "Guest", onLogout }) {
+export default function Header({ username, onToggleSidebar, onSignupClick }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -82,16 +80,10 @@ export default function Header({ onToggleSidebar, username = "Guest", onLogout }
         />
         {dropdownOpen && (
           <div style={profileDropdownStyle}>
-            <div style={dropdownItemStyle} onClick={() => alert("Profile clicked")}>
-              Profile
+            <div style={dropdownItemStyle} onClick={onSignupClick}>
+              Sign Up
             </div>
-            <div
-              style={dropdownItemStyle}
-              onClick={() => {
-                setDropdownOpen(false);
-                if (onLogout) onLogout();
-              }}
-            >
+            <div style={dropdownItemStyle} onClick={() => alert("Logout clicked")}>
               Logout
             </div>
           </div>

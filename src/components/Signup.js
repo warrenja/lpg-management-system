@@ -1,82 +1,52 @@
+// src/components/Signup.js
 import React, { useState } from "react";
 
 export default function Signup({ onSignupSuccess }) {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-
-  const [error, setError] = useState("");
-
-  function handleChange(e) {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  }
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState("customer"); // default to customer
+  const [error, setError] = useState(null);
 
   function handleSubmit(e) {
     e.preventDefault();
-
-    if (!formData.username || !formData.email || !formData.password) {
-      setError("All fields are required.");
+    if (!username.trim()) {
+      setError("Username is required");
       return;
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+    if (!role) {
+      setError("Please select a role");
       return;
     }
-
-    setError("");
-    alert(`Account created for ${formData.username}!`);
-    onSignupSuccess(formData.username);
-    setFormData({ username: "", email: "", password: "", confirmPassword: "" });
+    setError(null);
+    // Simulate signup success:
+    onSignupSuccess({ username: username.trim(), role });
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "20px auto" }}>
-      <h2>Create an Account</h2>
+    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "auto", padding: 20, backgroundColor: "#fff", borderRadius: 8 }}>
+      <h2>Create Account</h2>
+      <label>
+        Username:
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{ width: "100%", padding: 8, margin: "8px 0" }}
+          placeholder="Enter username"
+        />
+      </label>
+
+      <label>
+        Role:
+        <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: "100%", padding: 8, margin: "8px 0" }}>
+          <option value="customer">Customer</option>
+          <option value="driver">Driver</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <div>
-        <label>Username</label>
-        <input
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-          autoFocus
-        />
-      </div>
-      <div>
-        <label>Email</label>
-        <input
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label>Password</label>
-        <input
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label>Confirm Password</label>
-        <input
-          name="confirmPassword"
-          type="password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <button type="submit" style={{ marginTop: 10 }}>
+
+      <button type="submit" style={{ padding: "10px 20px", marginTop: 10 }}>
         Sign Up
       </button>
     </form>
