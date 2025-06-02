@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Orders.css";
 import AssignDriver from "../components/AssignDriver";
+import jsPDF from "jspdf"; // 👉 NEW: Import jsPDF
 
 const initialOrders = [
   { id: 1, customerId: "david", customer: "David", item: "6kg Cylinder", amount: "KSh 1500", status: "Delivered", assignedDriver: "driver1" },
@@ -25,11 +26,28 @@ const Orders = ({ role, username }) => {
   const [orders, setOrders] = useState(initialOrders);
   const [newOrderItem, setNewOrderItem] = useState("");
 
-  // Helper to generate CSS class for status styling
+  // 👉 Receipt Generator Function
+  const generateReceipt = (order) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Smart Gas Receipt", 10, 15);
+
+    doc.setFontSize(12);
+    doc.text(`Order ID: ${order.id}`, 10, 30);
+    doc.text(`Customer: ${order.customer}`, 10, 40);
+    doc.text(`Item: ${order.item}`, 10, 50);
+    doc.text(`Amount: ${order.amount}`, 10, 60);
+    doc.text(`Status: ${order.status}`, 10, 70);
+    doc.text(`Date: ${new Date().toLocaleString()}`, 10, 80);
+
+    doc.text("Thank you for shopping with Smart Gas!", 10, 100);
+
+    doc.save(`Receipt_Order_${order.id}.pdf`);
+  };
+
   const getStatusClass = (status) =>
     "status-" + status.toLowerCase().replace(/\s+/g, "-");
 
-  // Filter orders based on user role
   const filteredOrders = orders.filter((order) => {
     if (role === "admin") return true;
     if (role === "customer") return order.customerId === username;
@@ -37,7 +55,6 @@ const Orders = ({ role, username }) => {
     return false;
   });
 
-  // Assign or unassign a driver to an order (admin only)
   const handleAssignDriver = (orderId, driver) => {
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
@@ -46,7 +63,6 @@ const Orders = ({ role, username }) => {
     );
   };
 
-  // Submit a new order (customer only)
   const handleOrderSubmit = (e) => {
     e.preventDefault();
     if (!newOrderItem) return;
@@ -68,14 +84,13 @@ const Orders = ({ role, username }) => {
     };
 
     setOrders([newOrder, ...orders]);
-    setNewOrderItem(""); // reset form select
+    setNewOrderItem("");
   };
 
   return (
     <div className="orders-page">
       <h2>Orders</h2>
 
-      {/* Customer place order form */}
       {role === "customer" && (
         <form className="order-form" onSubmit={handleOrderSubmit}>
           <h3>Place a New Order</h3>
@@ -99,7 +114,6 @@ const Orders = ({ role, username }) => {
         </form>
       )}
 
-      {/* Orders Table */}
       {filteredOrders.length === 0 ? (
         <p>No orders found.</p>
       ) : (
@@ -112,24 +126,34 @@ const Orders = ({ role, username }) => {
               <th>Amount</th>
               <th>Status</th>
               {role === "admin" && <th>Assign Driver</th>}
+              {(role === "admin" || role === "customer") && <th>Receipt</th>}
             </tr>
           </thead>
           <tbody>
             {filteredOrders.map(
-              ({ id, customer, item, amount, status, assignedDriver }) => (
-                <tr key={id} className={getStatusClass(status)}>
-                  <td>{id}</td>
-                  {(role === "admin" || role === "driver") && <td>{customer}</td>}
-                  <td>{item}</td>
-                  <td>{amount}</td>
-                  <td>{status}</td>
+              (order) => (
+                <tr key={order.id} className={getStatusClass(order.status)}>
+                  <td>{order.id}</td>
+                  {(role === "admin" || role === "driver") && <td>{order.customer}</td>}
+                  <td>{order.item}</td>
+                  <td>{order.amount}</td>
+                  <td>{order.status}</td>
                   {role === "admin" && (
                     <td>
                       <AssignDriver
-                        orderId={id}
-                        assignedDriver={assignedDriver}
+                        orderId={order.id}
+                        assignedDriver={order.assignedDriver}
                         onAssign={handleAssignDriver}
                       />
+                    </td>
+                  )}
+                  {(role === "admin" || role === "customer") && (
+                    <td>
+                      {order.status === "Delivered" && (
+                        <button onClick={() => generateReceipt(order)}>
+                          Generate Receipt
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>
