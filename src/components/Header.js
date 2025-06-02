@@ -1,5 +1,3 @@
-// src/components/Header.js
-
 import React, { useState, useRef, useEffect } from "react";
 import { FaBars, FaUserCircle } from "react-icons/fa";
 import "./Header.css";
@@ -50,12 +48,9 @@ function getGreeting() {
   return "Good evening";
 }
 
-export default function Header({ onToggleSidebar }) {
+export default function Header({ onToggleSidebar, username = "Guest", onLogout }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
-
-  // Removed currentUsername import, hardcoded username
-  const username = "Guest";
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -90,7 +85,13 @@ export default function Header({ onToggleSidebar }) {
             <div style={dropdownItemStyle} onClick={() => alert("Profile clicked")}>
               Profile
             </div>
-            <div style={dropdownItemStyle} onClick={() => alert("Logout clicked")}>
+            <div
+              style={dropdownItemStyle}
+              onClick={() => {
+                setDropdownOpen(false);
+                if (onLogout) onLogout();
+              }}
+            >
               Logout
             </div>
           </div>
