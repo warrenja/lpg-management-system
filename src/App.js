@@ -12,11 +12,6 @@ import Sales from "./pages/Sales";
 import Reports from "./pages/Reports";
 import AddData from './pages/AddData';
 import Deliveries from "./pages/Deliveries";
-import Login from "./pages/Login";
-
-import ProtectedRoute from "./ProtectedRoute";
-import RoleBasedRoute from "./RoleBasedRoute";
-import { currentUserRole } from "./auth"; // <- Added
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -37,65 +32,14 @@ export default function App() {
       <Sidebar isOpen={sidebarOpen} />
       <main style={contentStyle}>
         <Routes>
-          <Route path="/login" element={<Login />} />
-
-          {/* Publicly protected home route */}
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-
-          {/* Admin only */}
-          <Route path="/customers" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin"]}>
-                <Customers />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
-          <Route path="/sales" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin"]}>
-                <Sales />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin"]}>
-                <Reports />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
-          <Route path="/add-data" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin"]}>
-                <AddData />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
-
-          {/* Admin + User */}
-          <Route path="/inventory" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin", "user"]}>
-                <Inventory />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
-          <Route path="/orders" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin", "user"]}>
-                <Orders />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
-
-          {/* Admin + Driver */}
-          <Route path="/deliveries" element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["admin", "driver"]}>
-                <Deliveries />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          } />
+          <Route path="/" element={<Home />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/add-data" element={<AddData />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/deliveries" element={<Deliveries />} />
         </Routes>
       </main>
     </Router>
