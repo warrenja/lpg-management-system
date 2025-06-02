@@ -73,7 +73,7 @@ export default function App() {
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/add-data" element={<AddData />} />
                 <Route path="/inventory" element={<Inventory />} />
-                <Route path="/orders" element={<Orders />} />
+                <Route path="/orders" element={<Orders role={role} username={user.username} />} />
                 <Route path="/deliveries" element={<Deliveries />} />
               </>
             )}
@@ -82,7 +82,7 @@ export default function App() {
             {role === "customer" && (
               <>
                 <Route path="/inventory" element={<Inventory />} />
-                <Route path="/orders" element={<Orders />} />
+                <Route path="/orders" element={<Orders role={role} username={user.username} />} />
                 <Route path="/deliveries" element={<Deliveries />} />
               </>
             )}

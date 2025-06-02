@@ -23,12 +23,13 @@ const itemOptions = [
 
 const Orders = ({ role, username }) => {
   const [orders, setOrders] = useState(initialOrders);
-  const [newOrder, setNewOrder] = useState({ item: "", amount: "" });
+  const [newOrderItem, setNewOrderItem] = useState("");
 
-  const getStatusClass = (status) => {
-    return "status-" + status.toLowerCase().replace(" ", "-");
-  };
+  // Helper to generate CSS class for status styling
+  const getStatusClass = (status) =>
+    "status-" + status.toLowerCase().replace(/\s+/g, "-");
 
+  // Filter orders based on user role
   const filteredOrders = orders.filter((order) => {
     if (role === "admin") return true;
     if (role === "customer") return order.customerId === username;
@@ -36,59 +37,65 @@ const Orders = ({ role, username }) => {
     return false;
   });
 
+  // Assign or unassign a driver to an order (admin only)
   const handleAssignDriver = (orderId, driver) => {
-    setOrders((prev) =>
-      prev.map((order) =>
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
         order.id === orderId ? { ...order, assignedDriver: driver || null } : order
       )
     );
   };
 
+  // Submit a new order (customer only)
   const handleOrderSubmit = (e) => {
     e.preventDefault();
-    if (!newOrder.item) return;
+    if (!newOrderItem) return;
 
-    const selected = itemOptions.find((opt) => opt.name === newOrder.item);
-    const nextId = orders.length ? Math.max(...orders.map((o) => o.id)) + 1 : 1;
+    const selectedItem = itemOptions.find((item) => item.name === newOrderItem);
+    if (!selectedItem) return;
+
+    const nextId = orders.length > 0 ? Math.max(...orders.map((o) => o.id)) + 1 : 1;
     const customerName = username.charAt(0).toUpperCase() + username.slice(1);
 
-    const order = {
+    const newOrder = {
       id: nextId,
       customerId: username,
       customer: customerName,
-      item: selected.name,
-      amount: selected.amount,
+      item: selectedItem.name,
+      amount: selectedItem.amount,
       status: "Pending",
       assignedDriver: null,
     };
 
-    setOrders([order, ...orders]);
-    setNewOrder({ item: "", amount: "" });
+    setOrders([newOrder, ...orders]);
+    setNewOrderItem(""); // reset form select
   };
 
   return (
     <div className="orders-page">
       <h2>Orders</h2>
 
-      {/* Customer Form */}
+      {/* Customer place order form */}
       {role === "customer" && (
         <form className="order-form" onSubmit={handleOrderSubmit}>
           <h3>Place a New Order</h3>
           <label>
             Item:
             <select
-              value={newOrder.item}
-              onChange={(e) => setNewOrder({ ...newOrder, item: e.target.value })}
+              value={newOrderItem}
+              onChange={(e) => setNewOrderItem(e.target.value)}
             >
               <option value="">Select</option>
-              {itemOptions.map((item) => (
-                <option key={item.name} value={item.name}>
-                  {item.name} - {item.amount}
+              {itemOptions.map(({ name, amount }) => (
+                <option key={name} value={name}>
+                  {name} - {amount}
                 </option>
               ))}
             </select>
           </label>
-          <button type="submit">Place Order</button>
+          <button type="submit" disabled={!newOrderItem}>
+            Place Order
+          </button>
         </form>
       )}
 
@@ -108,24 +115,26 @@ const Orders = ({ role, username }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map(({ id, customer, item, amount, status, assignedDriver }) => (
-              <tr key={id} className={getStatusClass(status)}>
-                <td>{id}</td>
-                {(role === "admin" || role === "driver") && <td>{customer}</td>}
-                <td>{item}</td>
-                <td>{amount}</td>
-                <td>{status}</td>
-                {role === "admin" && (
-                  <td>
-                    <AssignDriver
-                      orderId={id}
-                      assignedDriver={assignedDriver}
-                      onAssign={handleAssignDriver}
-                    />
-                  </td>
-                )}
-              </tr>
-            ))}
+            {filteredOrders.map(
+              ({ id, customer, item, amount, status, assignedDriver }) => (
+                <tr key={id} className={getStatusClass(status)}>
+                  <td>{id}</td>
+                  {(role === "admin" || role === "driver") && <td>{customer}</td>}
+                  <td>{item}</td>
+                  <td>{amount}</td>
+                  <td>{status}</td>
+                  {role === "admin" && (
+                    <td>
+                      <AssignDriver
+                        orderId={id}
+                        assignedDriver={assignedDriver}
+                        onAssign={handleAssignDriver}
+                      />
+                    </td>
+                  )}
+                </tr>
+              )
+            )}
           </tbody>
         </table>
       )}
