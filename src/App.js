@@ -16,10 +16,16 @@ import Deliveries from "./pages/Deliveries";
 
 import Signup from "./components/Signup";
 
+const initialUsers = [
+  { username: "janice", password: "Janice94", role: "admin" },
+  { username: "warren", password: "Warren42", role: "driver" },
+];
+
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [user, setUser] = useState(null); // { username: "...", role: "admin" | "driver" | "customer" }
+  const [user, setUser] = useState(null); // current logged-in user
   const [showSignup, setShowSignup] = useState(false);
+  const [users, setUsers] = useState(initialUsers); // all registered users
 
   const contentStyle = {
     marginTop: "60px",
@@ -31,10 +37,73 @@ export default function App() {
     overflowX: "hidden",
   };
 
+  // Handle signup - add user to users list & login
   function handleSignupSuccess(newUser) {
-    setUser(newUser); // newUser: { username, role }
+    setUsers((prev) => [...prev, newUser]);
+    setUser(newUser);
     setShowSignup(false);
   }
+
+  // Simple login form component inside App (you can move it out)
+  const LoginForm = () => {
+    const [formData, setFormData] = useState({ username: "", password: "" });
+    const [error, setError] = useState("");
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const foundUser = users.find(
+        (u) =>
+          u.username.toLowerCase() === formData.username.toLowerCase() &&
+          u.password === formData.password
+      );
+      if (foundUser) {
+        setUser(foundUser);
+        setError("");
+      } else {
+        setError("Invalid username or password");
+      }
+    };
+
+    return (
+      <div style={{ maxWidth: 300, margin: "auto", padding: 20 }}>
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Username:
+            <input
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Password:
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <br />
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          <button type="submit">Log In</button>
+        </form>
+        <p style={{ marginTop: 20 }}>
+          No account?{" "}
+          <button onClick={() => setShowSignup(true)}>Sign Up</button>
+        </p>
+      </div>
+    );
+  };
 
   const role = user?.role;
 
@@ -45,12 +114,12 @@ export default function App() {
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onSignupClick={() => setShowSignup(true)}
       />
+
       {user && <Sidebar isOpen={sidebarOpen} role={role} />}
 
       {!user && !showSignup && (
         <main style={{ ...contentStyle, marginLeft: 0 }}>
-          <h2>Welcome to Smart Gas</h2>
-          <p>Please sign up to access features.</p>
+          <LoginForm />
         </main>
       )}
 
@@ -91,6 +160,7 @@ export default function App() {
             {role === "driver" && (
               <>
                 <Route path="/deliveries" element={<Deliveries />} />
+                <Route path="/orders" element={<Orders role={role} username={user.username} />} />
               </>
             )}
 
