@@ -23,9 +23,10 @@ const initialUsers = [
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [user, setUser] = useState(null); // current logged-in user
+  const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
-  const [users, setUsers] = useState(initialUsers); // all registered users
+  const [users, setUsers] = useState(initialUsers);
+  const [orderNotifications, setOrderNotifications] = useState([]); // NEW
 
   const contentStyle = {
     marginTop: "60px",
@@ -37,14 +38,16 @@ export default function App() {
     overflowX: "hidden",
   };
 
-  // Handle signup - add user to users list & login
-  function handleSignupSuccess(newUser) {
+  const handleSignupSuccess = (newUser) => {
     setUsers((prev) => [...prev, newUser]);
     setUser(newUser);
     setShowSignup(false);
-  }
+  };
 
-  // Simple login form component inside App (you can move it out)
+  const handleNewOrder = (order) => {
+    setOrderNotifications((prev) => [...prev, order]);
+  };
+
   const LoginForm = () => {
     const [formData, setFormData] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
@@ -142,7 +145,16 @@ export default function App() {
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/add-data" element={<AddData />} />
                 <Route path="/inventory" element={<Inventory />} />
-                <Route path="/orders" element={<Orders role={role} username={user.username} />} />
+                <Route
+                  path="/orders"
+                  element={
+                    <Orders
+                      role={role}
+                      username={user.username}
+                      notifications={orderNotifications}
+                    />
+                  }
+                />
                 <Route path="/deliveries" element={<Deliveries />} />
               </>
             )}
@@ -151,7 +163,16 @@ export default function App() {
             {role === "customer" && (
               <>
                 <Route path="/inventory" element={<Inventory />} />
-                <Route path="/orders" element={<Orders role={role} username={user.username} />} />
+                <Route
+                  path="/orders"
+                  element={
+                    <Orders
+                      role={role}
+                      username={user.username}
+                      onPlaceOrder={handleNewOrder}
+                    />
+                  }
+                />
                 <Route path="/deliveries" element={<Deliveries />} />
               </>
             )}
@@ -160,11 +181,13 @@ export default function App() {
             {role === "driver" && (
               <>
                 <Route path="/deliveries" element={<Deliveries />} />
-                <Route path="/orders" element={<Orders role={role} username={user.username} />} />
+                <Route
+                  path="/orders"
+                  element={<Orders role={role} username={user.username} />}
+                />
               </>
             )}
 
-            {/* Fallback */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

@@ -1,6 +1,7 @@
 // src/components/Header.js
 import React, { useState, useRef, useEffect } from "react";
-import { FaBars, FaUserCircle } from "react-icons/fa";
+import { FaBars, FaUserCircle, FaBell } from "react-icons/fa";
+import "./Header.css"; // Ensure this CSS file contains .notification-badge
 
 const headerStyle = {
   height: "60px",
@@ -46,7 +47,7 @@ function getGreeting() {
   return "Good evening";
 }
 
-export default function Header({ username, onToggleSidebar, onSignupClick }) {
+export default function Header({ username, onToggleSidebar, onSignupClick, newOrderNotifications }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -72,22 +73,36 @@ export default function Header({ username, onToggleSidebar, onSignupClick }) {
           Welcome to Smart Gas — {getGreeting()} {username}
         </span>
       </div>
-      <div style={{ position: "relative" }} ref={dropdownRef}>
-        <FaUserCircle
-          style={{ fontSize: "30px", cursor: "pointer", color: "#fff" }}
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          title="Profile"
-        />
-        {dropdownOpen && (
-          <div style={profileDropdownStyle}>
-            <div style={dropdownItemStyle} onClick={onSignupClick}>
-              Sign Up
+
+      <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
+        {/* Notification Bell */}
+        <div style={{ position: "relative", marginRight: 20 }}>
+          <FaBell style={{ fontSize: "24px", cursor: "pointer", color: "#fff" }} title="Notifications" />
+          {newOrderNotifications > 0 && (
+            <span className="notification-badge">{newOrderNotifications}</span>
+          )}
+        </div>
+
+        {/* Profile Icon & Dropdown */}
+        <div style={{ position: "relative" }} ref={dropdownRef}>
+          <FaUserCircle
+            style={{ fontSize: "30px", cursor: "pointer", color: "#fff" }}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            title="Profile"
+          />
+          {dropdownOpen && (
+            <div style={profileDropdownStyle}>
+              {!username && (
+                <div style={dropdownItemStyle} onClick={onSignupClick}>
+                  Sign Up
+                </div>
+              )}
+              <div style={dropdownItemStyle} onClick={() => alert("Logout clicked")}>
+                Logout
+              </div>
             </div>
-            <div style={dropdownItemStyle} onClick={() => alert("Logout clicked")}>
-              Logout
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );
