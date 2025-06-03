@@ -1,12 +1,14 @@
 .orders-page {
   padding: 20px;
   background-color: #f4f4f4;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .orders-page h2 {
   color: #333;
 }
 
+/* Orders table styling */
 .orders-table {
   width: 100%;
   border-collapse: collapse;
@@ -20,14 +22,20 @@
   padding: 12px;
   border: 1px solid #ddd;
   text-align: left;
+
+  font-weight: 600;
+  color: #222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Table header */
 .orders-table th {
   background-color: #1976d2;
   color: white;
 }
 
-/* Vivid row highlights for statuses */
+/* Status row colors with strong contrast */
 .status-delivered {
   background-color: #28a745;
   color: white;
@@ -52,26 +60,8 @@
   background-color: #dc3545;
   color: white;
 }
-.orders-page {
-  padding: 20px;
-}
 
-.orders-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.orders-table th,
-.orders-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-}
-
-.orders-table th {
-  background-color: #f0f0f0;
-}
-
+/* Order form styling */
 .order-form {
   margin-bottom: 20px;
 }
@@ -79,20 +69,29 @@
 .order-form label {
   display: block;
   margin-bottom: 10px;
+  font-weight: 600;
+  color: #333;
 }
 
 .order-form select {
   margin-left: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
 }
 
 .order-form button {
   margin-top: 10px;
-  padding: 5px 10px;
+  padding: 7px 14px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
 }
 
-/* Optional status styling */
-.status-delivered { background-color: #e6ffed; }
-.status-pending { background-color: #fff7e6; }
-.status-shipped { background-color: #e6f0ff; }
-.status-cancelled { background-color: #ffe6e6; }
-.status-in\\ transit { background-color: #e0f7fa; }
+.order-form button:hover {
+  background-color: #125ea9;
+}

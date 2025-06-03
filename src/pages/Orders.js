@@ -84,6 +84,10 @@ const Orders = ({ role, username, onPlaceOrder }) => {
       assignedDriver: null,
     };
 
+    console.log("Posting order to:", `${backendUrl}/orders`);
+    console.log("Order data:", newOrder);
+
+
     setLoading(true);
     setMessage("");
 
