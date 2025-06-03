@@ -18,8 +18,7 @@ export default function Receipts() {
   const [error, setError] = useState(null);
 
   // Fetch receipts from backend
-  useEffect(() => {
-    fetch("https://your-backend-url/receipts") // Replace with your backend URL
+  useEffect(() => {fetch("https://lpg-backend-xyz.onrender.com/receipts")
       .then((res) => res.json())
       .then(setReceipts)
       .catch((err) => setError("Failed to load receipts"));
