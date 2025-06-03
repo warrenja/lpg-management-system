@@ -8,7 +8,7 @@ const Receipts = () => {
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
-    fetch(`${BASE_URL}/receipts`)
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/receipts`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch receipts");
         return res.json();
