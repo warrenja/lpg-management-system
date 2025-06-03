@@ -87,32 +87,39 @@ const handleOrderSubmit = async (e) => {
   setLoading(true);
   setMessage("");
 
-try {
-  const response = await fetch(`${backendUrl}/orders`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newOrder),
-  });
+  try {
+    console.log("Posting new order to backend URL:", `${backendUrl}/orders`);
+    console.log("Order payload:", newOrder);
 
-  console.log("Response status:", response.status);
-  const text = await response.text();  // 👈 read raw response text
-  console.log("Raw response text:", text);
+    const response = await fetch(`${backendUrl}/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder),
+    });
 
-  // Then try to parse it
-  const savedOrder = JSON.parse(text);
-  console.log("Saved order parsed from backend:", savedOrder);
+    console.log("Response status:", response.status);
 
-  setOrders((prevOrders) => [savedOrder, ...prevOrders]);
-  setNewOrderItem("");
-  setMessage("✅ Order placed successfully");
+    if (!response.ok) {
+      // Try to parse error message if any
+      const errorData = await response.json().catch(() => null);
+      console.error("Backend error response:", errorData);
+      throw new Error("Non-successful response from backend");
+    }
 
-  if (onPlaceOrder) onPlaceOrder(savedOrder);
-} catch (err) {
-  console.error("❌ Order placement error:", err);
-  setMessage("❌ Could not place order.");
-} finally {
-  setLoading(false);
-}
+    const savedOrder = await response.json();
+    console.log("Saved order received from backend:", savedOrder);
+
+    setOrders((prevOrders) => [savedOrder, ...prevOrders]);
+    setNewOrderItem("");
+    setMessage("✅ Order placed successfully");
+
+    if (onPlaceOrder) onPlaceOrder(savedOrder);
+  } catch (err) {
+    console.error("❌ Order placement error:", err);
+    setMessage("❌ Could not place order.");
+  } finally {
+    setLoading(false);
+  }
 };
 
   // Admin updates status handler
