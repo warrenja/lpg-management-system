@@ -94,23 +94,29 @@ const handleOrderSubmit = async (e) => {
       body: JSON.stringify(newOrder),
     });
 
-    console.log("Response status:", response.status);
+    const contentType = response.headers.get("Content-Type");
+    let savedOrder;
 
-    // Handle all 2xx codes as OK
-    if (response.status < 200 || response.status >= 300) {
-      throw new Error("Non-successful response from backend");
+    if (contentType && contentType.includes("application/json")) {
+      savedOrder = await response.json();
+    } else {
+      const text = await response.text();
+      throw new Error(`Unexpected response: ${text}`);
     }
 
-    const savedOrder = await response.json();
-    console.log("Saved order received from backend:", savedOrder);
+    if (!response.ok) {
+      console.error("⚠️ Backend responded with error:", savedOrder);
+      throw new Error(savedOrder.message || "Failed to place order");
+    }
 
+    console.log("✅ Saved order:", savedOrder);
     setOrders((prevOrders) => [savedOrder, ...prevOrders]);
     setNewOrderItem("");
     setMessage("✅ Order placed successfully");
 
     if (onPlaceOrder) onPlaceOrder(savedOrder);
   } catch (err) {
-    console.error("❌ Order placement error:", err);
+    console.error("❌ Order placement error:", err.message);
     setMessage("❌ Could not place order.");
   } finally {
     setLoading(false);
