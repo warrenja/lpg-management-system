@@ -1,152 +1,140 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const mockUser = {
+  id: 1,
+  role: "admin", // Change to "customer" to test role-based access
+  name: "Admin User",
+};
 
-const Receipts = ({ role, username }) => {
+export default function Receipts() {
   const [receipts, setReceipts] = useState([]);
-  const [newReceipt, setNewReceipt] = useState({
+  const [formData, setFormData] = useState({
     orderId: "",
     customer: "",
     amount: "",
-    paymentMethod: "Cash",
+    paymentMethod: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
-  // Fetch receipts on mount
+  // Fetch receipts from backend
   useEffect(() => {
-    setLoading(true);
-    fetch(`${backendUrl}/receipts`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch receipts");
-        return res.json();
-      })
-      .then((data) => {
-        // If user is customer, filter their receipts only
-        if (role === "customer") {
-          setReceipts(data.filter((r) => r.customer === username));
-        } else {
-          setReceipts(data);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [role, username]);
+    fetch("https://your-backend-url/receipts") // Replace with your backend URL
+      .then((res) => res.json())
+      .then(setReceipts)
+      .catch((err) => setError("Failed to load receipts"));
+  }, []);
 
-  const handleChange = (e) => {
+  // Handle form input changes
+  function handleChange(e) {
     const { name, value } = e.target;
-    setNewReceipt((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
 
-  const isFormValid =
-    newReceipt.orderId.trim() &&
-    newReceipt.customer.trim() &&
-    !isNaN(parseFloat(newReceipt.amount)) &&
-    parseFloat(newReceipt.amount) > 0;
-
-  const handleSubmit = (e) => {
+  // Handle receipt creation form submit
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!isFormValid) {
-      setError("Please fill out all fields correctly.");
-      return;
-    }
+    setError(null);
+    setLoading(true);
 
-    setError("");
-    fetch(`${backendUrl}/receipts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newReceipt),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to add receipt");
-        return res.json();
-      })
-      .then((data) => {
-        setReceipts((prev) => [data, ...prev]);
-        setNewReceipt({ orderId: "", customer: "", amount: "", paymentMethod: "Cash" });
-      })
-      .catch((err) => {
-        setError(err.message);
+    try {
+      const res = await fetch("https://your-backend-url/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-  };
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to create receipt");
+      }
+
+      const newReceipt = await res.json();
+      setReceipts((prev) => [newReceipt, ...prev]);
+      setFormData({ orderId: "", customer: "", amount: "", paymentMethod: "" });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="receipts-page">
+    <div style={{ padding: "1rem", maxWidth: 600, margin: "auto" }}>
       <h2>Receipts</h2>
 
-      <form className="receipt-form" onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-        <input
-          name="orderId"
-          placeholder="Order ID"
-          value={newReceipt.orderId}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="customer"
-          placeholder="Customer"
-          value={newReceipt.customer}
-          onChange={handleChange}
-          required
-          disabled={role === "customer"} // customers cannot change customer field
-        />
-        <input
-          name="amount"
-          placeholder="Amount"
-          value={newReceipt.amount}
-          onChange={handleChange}
-          required
-          type="number"
-          min="0"
-          step="0.01"
-        />
-        <select name="paymentMethod" value={newReceipt.paymentMethod} onChange={handleChange}>
-          <option value="Cash">Cash</option>
-          <option value="MPesa">MPesa</option>
-          <option value="Card">Card</option>
-        </select>
-        <button type="submit" disabled={!isFormValid}>
-          Add Receipt
-        </button>
-      </form>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {loading ? (
-        <p>Loading receipts...</p>
-      ) : receipts.length === 0 ? (
-        <p>No receipts found.</p>
-      ) : (
-        <table className="receipts-table" border="1" cellPadding="8" cellSpacing="0" style={{ width: "100%" }}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th>Amount</th>
-              <th>Payment</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {receipts.map((r) => (
-              <tr key={r.id}>
-                <td>{r.id}</td>
-                <td>{r.orderId}</td>
-                <td>{r.customer}</td>
-                <td>${parseFloat(r.amount).toFixed(2)}</td>
-                <td>{r.paymentMethod}</td>
-                <td>{new Date(r.date).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Show receipt creation form only for admin */}
+      {mockUser.role === "admin" && (
+        <form onSubmit={handleSubmit} style={{ marginBottom: "2rem" }}>
+          <h3>Create Receipt</h3>
+          <div>
+            <label>
+              Order ID:
+              <input
+                type="text"
+                name="orderId"
+                value={formData.orderId}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Customer:
+              <input
+                type="text"
+                name="customer"
+                value={formData.customer}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Amount:
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                required
+                min="0"
+                step="0.01"
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              Payment Method:
+              <input
+                type="text"
+                name="paymentMethod"
+                value={formData.paymentMethod}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
+          <button type="submit" disabled={loading}>
+            {loading ? "Creating..." : "Create Receipt"}
+          </button>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </form>
       )}
+
+      <h3>All Receipts</h3>
+      {error && !loading && <p style={{ color: "red" }}>{error}</p>}
+      <ul>
+        {receipts.map((r) => (
+          <li key={r.id} style={{ marginBottom: "1rem" }}>
+            <strong>Receipt #{r.id}</strong> — Order: {r.orderId}, Customer:{" "}
+            {r.customer}, Amount: ${r.amount}, Payment: {r.paymentMethod}, Date:{" "}
+            {new Date(r.date).toLocaleString()}
+          </li>
+        ))}
+      </ul>
     </div>
   );
-};
-
-export default Receipts;
+}
