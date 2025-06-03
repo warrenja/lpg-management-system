@@ -68,48 +68,54 @@ const Orders = ({ role, username, onPlaceOrder }) => {
     );
   };
 
-  const handleOrderSubmit = async (e) => {
-    e.preventDefault();
-    if (!newOrderItem) return;
+const handleOrderSubmit = async (e) => {
+  e.preventDefault();
+  if (!newOrderItem) return;
 
-    const selectedItem = itemOptions.find((item) => item.name === newOrderItem);
-    if (!selectedItem) return;
+  const selectedItem = itemOptions.find((item) => item.name === newOrderItem);
+  if (!selectedItem) return;
 
-    const newOrder = {
-      customerId: username,
-      customer: username.charAt(0).toUpperCase() + username.slice(1),
-      item: selectedItem.name,
-      amount: selectedItem.amount,
-      status: "Pending",
-      assignedDriver: null,
-    };
-
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const response = await fetch(`${backendUrl}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newOrder),
-      });
-
-      if (!response.ok) throw new Error("Failed to place order.");
-
-      const savedOrder = await response.json();
-
-      setOrders([savedOrder, ...orders]);
-      setNewOrderItem("");
-      setMessage("Order placed successfully ✅");
-
-      if (onPlaceOrder) onPlaceOrder(savedOrder);
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Could not place order.");
-    } finally {
-      setLoading(false);
-    }
+  const newOrder = {
+    customerId: username,
+    customer: username.charAt(0).toUpperCase() + username.slice(1),
+    item: selectedItem.name,
+    amount: selectedItem.amount,
+    status: "Pending",
+    assignedDriver: null,
   };
+
+  setLoading(true);
+  setMessage("");
+
+  try {
+    const response = await fetch(`${backendUrl}/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder),
+    });
+
+    console.log("Response status:", response.status);
+
+    // Handle all 2xx codes as OK
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error("Non-successful response from backend");
+    }
+
+    const savedOrder = await response.json();
+    console.log("Saved order received from backend:", savedOrder);
+
+    setOrders((prevOrders) => [savedOrder, ...prevOrders]);
+    setNewOrderItem("");
+    setMessage("✅ Order placed successfully");
+
+    if (onPlaceOrder) onPlaceOrder(savedOrder);
+  } catch (err) {
+    console.error("❌ Order placement error:", err);
+    setMessage("❌ Could not place order.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Admin updates status handler
   const handleStatusChange = async (orderId, newStatus) => {
