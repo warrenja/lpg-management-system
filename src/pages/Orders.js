@@ -87,40 +87,32 @@ const handleOrderSubmit = async (e) => {
   setLoading(true);
   setMessage("");
 
-  try {
-    const response = await fetch(`${backendUrl}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder),
-    });
+try {
+  const response = await fetch(`${backendUrl}/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newOrder),
+  });
 
-    const contentType = response.headers.get("Content-Type");
-    let savedOrder;
+  console.log("Response status:", response.status);
+  const text = await response.text();  // 👈 read raw response text
+  console.log("Raw response text:", text);
 
-    if (contentType && contentType.includes("application/json")) {
-      savedOrder = await response.json();
-    } else {
-      const text = await response.text();
-      throw new Error(`Unexpected response: ${text}`);
-    }
+  // Then try to parse it
+  const savedOrder = JSON.parse(text);
+  console.log("Saved order parsed from backend:", savedOrder);
 
-    if (!response.ok) {
-      console.error("⚠️ Backend responded with error:", savedOrder);
-      throw new Error(savedOrder.message || "Failed to place order");
-    }
+  setOrders((prevOrders) => [savedOrder, ...prevOrders]);
+  setNewOrderItem("");
+  setMessage("✅ Order placed successfully");
 
-    console.log("✅ Saved order:", savedOrder);
-    setOrders((prevOrders) => [savedOrder, ...prevOrders]);
-    setNewOrderItem("");
-    setMessage("✅ Order placed successfully");
-
-    if (onPlaceOrder) onPlaceOrder(savedOrder);
-  } catch (err) {
-    console.error("❌ Order placement error:", err.message);
-    setMessage("❌ Could not place order.");
-  } finally {
-    setLoading(false);
-  }
+  if (onPlaceOrder) onPlaceOrder(savedOrder);
+} catch (err) {
+  console.error("❌ Order placement error:", err);
+  setMessage("❌ Could not place order.");
+} finally {
+  setLoading(false);
+}
 };
 
   // Admin updates status handler
