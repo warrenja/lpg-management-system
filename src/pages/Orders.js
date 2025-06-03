@@ -84,10 +84,6 @@ const Orders = ({ role, username, onPlaceOrder }) => {
       assignedDriver: null,
     };
 
-    console.log("Posting order to:", `${backendUrl}/orders`);
-    console.log("Order data:", newOrder);
-
-
     setLoading(true);
     setMessage("");
 
@@ -112,6 +108,27 @@ const Orders = ({ role, username, onPlaceOrder }) => {
       setMessage("❌ Could not place order.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Admin updates status handler
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      const response = await fetch(`${backendUrl}/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!response.ok) throw new Error("Failed to update status");
+
+      const updatedOrder = await response.json();
+
+      setOrders((prev) =>
+        prev.map((order) => (order.id === updatedOrder.id ? updatedOrder : order))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Error updating order status");
     }
   };
 
@@ -155,6 +172,7 @@ const Orders = ({ role, username, onPlaceOrder }) => {
               <th>Amount</th>
               <th>Status</th>
               {role === "admin" && <th>Assign Driver</th>}
+              {role === "admin" && <th>Update Status</th>}
               {(role === "admin" || role === "customer") && <th>Receipt</th>}
             </tr>
           </thead>
@@ -166,6 +184,7 @@ const Orders = ({ role, username, onPlaceOrder }) => {
                 <td>{order.item}</td>
                 <td>{order.amount}</td>
                 <td>{order.status}</td>
+
                 {role === "admin" && (
                   <td>
                     <AssignDriver
@@ -175,6 +194,19 @@ const Orders = ({ role, username, onPlaceOrder }) => {
                     />
                   </td>
                 )}
+
+                {role === "admin" && (
+                  <td>
+                    <select
+                      value={order.status}
+                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Delivered">Delivered</option>
+                    </select>
+                  </td>
+                )}
+
                 {(role === "admin" || role === "customer") && (
                   <td>
                     {order.status === "Delivered" && (
