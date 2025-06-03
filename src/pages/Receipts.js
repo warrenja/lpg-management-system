@@ -5,26 +5,29 @@ const Receipts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/receipts`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch receipts");
-        return res.json();
-      })
-      .then((data) => {
+    const fetchReceipts = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/receipts`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch receipts: ${response.statusText}`);
+        }
+        const data = await response.json();
         setReceipts(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchReceipts();
   }, [BASE_URL]);
 
   if (loading) return <p>Loading receipts...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
 
   return (
     <div>
