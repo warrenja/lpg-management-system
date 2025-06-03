@@ -8,6 +8,7 @@ import {
   FaCashRegister,
   FaChartBar,
   FaPlus,
+  FaFileInvoiceDollar, // icon for receipts
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -19,6 +20,7 @@ const sidebarItems = [
   { name: "Sales", path: "/sales", icon: <FaCashRegister /> },
   { name: "Reports", path: "/reports", icon: <FaChartBar /> },
   { name: "Deliveries", path: "/deliveries", icon: <FaClipboardList />, color: "#6a1b9a" },
+  { name: "Receipts", path: "/receipts", icon: <FaFileInvoiceDollar />, color: "#2e86de" }, // 🔥 Added
   { name: "Add Data", path: "/add-data", icon: <FaPlus />, color: "#8e44ad" },
 ];
 
@@ -26,10 +28,7 @@ export default function Sidebar({ isOpen }) {
   const location = useLocation();
 
   return (
-    <nav
-      className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}
-      aria-label="Sidebar Navigation"
-    >
+    <nav className={`sidebar ${isOpen ? "expanded" : "collapsed"}`} aria-label="Sidebar Navigation">
       {sidebarItems.map(({ name, path, icon }) => {
         const isActive = location.pathname === path;
         return (
@@ -41,7 +40,7 @@ export default function Sidebar({ isOpen }) {
               fontSize: isOpen ? "18px" : "22px",
               justifyContent: isOpen ? "flex-start" : "center",
               paddingLeft: isOpen ? "20px" : "0",
-              color: "white", // Ensure font is pure white
+              color: "white",
             }}
             title={name}
           >

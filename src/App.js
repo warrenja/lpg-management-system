@@ -15,11 +15,11 @@ import AddData from "./pages/AddData";
 import Deliveries from "./pages/Deliveries";
 
 import Signup from "./components/Signup";
+import Receipts from "./pages/Receipts"; // <-- import new Receipts component
 
 const initialUsers = [
   { username: "janice", password: "Janice94", role: "admin" },
   { username: "warren", password: "Warren42", role: "driver" },
-  // You might want to add a default customer for testing, e.g.
   { username: "john", password: "John123", role: "customer" },
 ];
 
@@ -28,7 +28,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
   const [users, setUsers] = useState(initialUsers);
-  const [orderNotifications, setOrderNotifications] = useState([]); // NEW
+  const [orderNotifications, setOrderNotifications] = useState([]);
 
   const contentStyle = {
     marginTop: "60px",
@@ -46,7 +46,6 @@ export default function App() {
     setShowSignup(false);
   };
 
-  // Called when a new order is placed to add notification
   const handleNewOrder = (order) => {
     setOrderNotifications((prev) => [...prev, order]);
   };
@@ -155,11 +154,15 @@ export default function App() {
                       role={role}
                       username={user.username}
                       notifications={orderNotifications}
-                      onPlaceOrder={handleNewOrder} // pass handler to Orders
+                      onPlaceOrder={handleNewOrder}
                     />
                   }
                 />
                 <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/receipts"
+                  element={<Receipts role={role} username={user.username} />}
+                />
               </>
             )}
 
@@ -178,6 +181,10 @@ export default function App() {
                   }
                 />
                 <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/receipts"
+                  element={<Receipts role={role} username={user.username} />}
+                />
               </>
             )}
 
@@ -189,6 +196,7 @@ export default function App() {
                   path="/orders"
                   element={<Orders role={role} username={user.username} />}
                 />
+                {/* Driver does not have receipts access */}
               </>
             )}
 
