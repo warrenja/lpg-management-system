@@ -1,20 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Orders.css";
 import AssignDriver from "../components/AssignDriver";
-import jsPDF from "jspdf"; // 👉 NEW: Import jsPDF
-
-const initialOrders = [
-  { id: 1, customerId: "david", customer: "David", item: "6kg Cylinder", amount: "KSh 1500", status: "Delivered", assignedDriver: "driver1" },
-  { id: 2, customerId: "sarah", customer: "Sarah", item: "13kg Cylinder", amount: "KSh 2500", status: "Pending", assignedDriver: null },
-  { id: 3, customerId: "john", customer: "John", item: "50kg Cylinder", amount: "KSh 7000", status: "Shipped", assignedDriver: "driver2" },
-  { id: 4, customerId: "mary", customer: "Mary", item: "13kg Cylinder", amount: "KSh 2500", status: "Cancelled", assignedDriver: null },
-  { id: 5, customerId: "peter", customer: "Peter", item: "6kg Cylinder", amount: "KSh 1500", status: "In Transit", assignedDriver: "driver1" },
-  { id: 6, customerId: "grace", customer: "Grace", item: "13kg Cylinder", amount: "KSh 2500", status: "Delivered", assignedDriver: null },
-  { id: 7, customerId: "paul", customer: "Paul", item: "50kg Cylinder", amount: "KSh 7000", status: "Pending", assignedDriver: "driver3" },
-  { id: 8, customerId: "esther", customer: "Esther", item: "6kg Cylinder", amount: "KSh 1500", status: "Shipped", assignedDriver: null },
-  { id: 9, customerId: "james", customer: "James", item: "13kg Cylinder", amount: "KSh 2500", status: "Delivered", assignedDriver: "driver2" },
-  { id: 10, customerId: "ruth", customer: "Ruth", item: "50kg Cylinder", amount: "KSh 7000", status: "Cancelled", assignedDriver: null },
-];
+import jsPDF from "jspdf";
 
 const itemOptions = [
   { name: "6kg Cylinder", amount: "KSh 1500" },
@@ -22,11 +9,32 @@ const itemOptions = [
   { name: "50kg Cylinder", amount: "KSh 7000" },
 ];
 
-const Orders = ({ role, username }) => {
-  const [orders, setOrders] = useState(initialOrders);
+const Orders = ({ role, username, onPlaceOrder }) => {
+  const [orders, setOrders] = useState([]);
   const [newOrderItem, setNewOrderItem] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // 👉 Receipt Generator Function
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/orders`);
+        if (!response.ok) throw new Error("Failed to fetch orders");
+        const data = await response.json();
+        setOrders(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchOrders();
+  }, [backendUrl]);
+
+  const getStatusClass = (status) =>
+    "status-" + status.toLowerCase().replace(/\s+/g, "-");
+
   const generateReceipt = (order) => {
     const doc = new jsPDF();
     doc.setFontSize(18);
@@ -45,9 +53,6 @@ const Orders = ({ role, username }) => {
     doc.save(`Receipt_Order_${order.id}.pdf`);
   };
 
-  const getStatusClass = (status) =>
-    "status-" + status.toLowerCase().replace(/\s+/g, "-");
-
   const filteredOrders = orders.filter((order) => {
     if (role === "admin") return true;
     if (role === "customer") return order.customerId === username;
@@ -56,35 +61,54 @@ const Orders = ({ role, username }) => {
   });
 
   const handleAssignDriver = (orderId, driver) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, assignedDriver: driver || null } : order
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId ? { ...order, assignedDriver: driver } : order
       )
     );
   };
 
-  const handleOrderSubmit = (e) => {
+  const handleOrderSubmit = async (e) => {
     e.preventDefault();
     if (!newOrderItem) return;
 
     const selectedItem = itemOptions.find((item) => item.name === newOrderItem);
     if (!selectedItem) return;
 
-    const nextId = orders.length > 0 ? Math.max(...orders.map((o) => o.id)) + 1 : 1;
-    const customerName = username.charAt(0).toUpperCase() + username.slice(1);
-
     const newOrder = {
-      id: nextId,
       customerId: username,
-      customer: customerName,
+      customer: username.charAt(0).toUpperCase() + username.slice(1),
       item: selectedItem.name,
       amount: selectedItem.amount,
       status: "Pending",
       assignedDriver: null,
     };
 
-    setOrders([newOrder, ...orders]);
-    setNewOrderItem("");
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`${backendUrl}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOrder),
+      });
+
+      if (!response.ok) throw new Error("Failed to place order.");
+
+      const savedOrder = await response.json();
+
+      setOrders([savedOrder, ...orders]);
+      setNewOrderItem("");
+      setMessage("Order placed successfully ✅");
+
+      if (onPlaceOrder) onPlaceOrder(savedOrder);
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Could not place order.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,9 +132,10 @@ const Orders = ({ role, username }) => {
               ))}
             </select>
           </label>
-          <button type="submit" disabled={!newOrderItem}>
-            Place Order
+          <button type="submit" disabled={!newOrderItem || loading}>
+            {loading ? "Placing..." : "Place Order"}
           </button>
+          {message && <p style={{ marginTop: "10px" }}>{message}</p>}
         </form>
       )}
 
@@ -130,35 +155,33 @@ const Orders = ({ role, username }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map(
-              (order) => (
-                <tr key={order.id} className={getStatusClass(order.status)}>
-                  <td>{order.id}</td>
-                  {(role === "admin" || role === "driver") && <td>{order.customer}</td>}
-                  <td>{order.item}</td>
-                  <td>{order.amount}</td>
-                  <td>{order.status}</td>
-                  {role === "admin" && (
-                    <td>
-                      <AssignDriver
-                        orderId={order.id}
-                        assignedDriver={order.assignedDriver}
-                        onAssign={handleAssignDriver}
-                      />
-                    </td>
-                  )}
-                  {(role === "admin" || role === "customer") && (
-                    <td>
-                      {order.status === "Delivered" && (
-                        <button onClick={() => generateReceipt(order)}>
-                          Generate Receipt
-                        </button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              )
-            )}
+            {filteredOrders.map((order) => (
+              <tr key={order.id} className={getStatusClass(order.status)}>
+                <td>{order.id}</td>
+                {(role === "admin" || role === "driver") && <td>{order.customer}</td>}
+                <td>{order.item}</td>
+                <td>{order.amount}</td>
+                <td>{order.status}</td>
+                {role === "admin" && (
+                  <td>
+                    <AssignDriver
+                      orderId={order.id}
+                      assignedDriver={order.assignedDriver}
+                      onAssign={handleAssignDriver}
+                    />
+                  </td>
+                )}
+                {(role === "admin" || role === "customer") && (
+                  <td>
+                    {order.status === "Delivered" && (
+                      <button onClick={() => generateReceipt(order)}>
+                        Generate Receipt
+                      </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
