@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import './Home.css';
 import { Link } from "react-router-dom";
 import {
@@ -24,7 +24,6 @@ import {
   BarChart,
   Bar
 } from "recharts";
-import { AuthContext } from "../context/AuthContext"; // make sure this path is correct
 
 const iconColors = ["#ff1744", "#00e676", "#ff9100", "#2979ff", "#6a1b9a"];
 
@@ -57,7 +56,6 @@ const lineData = [
 const pieColors = ["#e63946", "#1d3557", "#2a9d8f", "#f4a261"];
 
 export default function Home() {
-  const { user } = useContext(AuthContext); // Get current user, null if not logged in
   const iconSize = 110;
 
   const commonBackgroundStyle = {
@@ -88,12 +86,6 @@ export default function Home() {
 
   return (
     <div>
-      {!user && (
-        <div style={{ textAlign: "center", margin: "20px", fontSize: "18px", color: "#555" }}>
-          Please <Link to="/login">log in</Link> to access full features.
-        </div>
-      )}
-
       {/* Icons Grid */}
       <div style={{ display: "flex", justifyContent: "center" }}>
         <div style={commonBackgroundStyle}>
@@ -101,12 +93,11 @@ export default function Home() {
             {sidebarItems.map(({ name, path, icon, color }) => (
               <Link
                 key={name}
-                to={user ? path : "#"}
+                to={path}
                 style={{
                   textDecoration: "none",
                   textAlign: "center",
-                  color: user ? color : "#ccc",
-                  pointerEvents: user ? "auto" : "none",
+                  color: color,
                 }}
               >
                 <div style={{ fontSize: iconSize }}>{icon}</div>
