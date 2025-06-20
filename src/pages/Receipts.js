@@ -5,12 +5,12 @@ const Receipts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "";
 
   useEffect(() => {
     const fetchReceipts = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/receipts`);
+        const response = await fetch(`${BASE_URL}/api/receipts`);
         if (!response.ok) {
           throw new Error(`Failed to fetch receipts: ${response.statusText}`);
         }
@@ -30,31 +30,29 @@ const Receipts = () => {
   if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h1>Receipts</h1>
       {receipts.length === 0 ? (
         <p>No receipts found.</p>
       ) : (
-        <table border="1" cellPadding="8" cellSpacing="0">
-          <thead>
+        <table border="1" cellPadding="8" cellSpacing="0" style={{ width: "100%" }}>
+          <thead style={{ backgroundColor: "#f4f4f4" }}>
             <tr>
-              <th>ID</th>
+              <th>Receipt ID</th>
               <th>Order ID</th>
               <th>Customer</th>
-              <th>Amount</th>
-              <th>Payment Method</th>
-              <th>Date</th>
+              <th>Total Amount</th>
+              <th>Date Generated</th>
             </tr>
           </thead>
           <tbody>
             {receipts.map((r) => (
-              <tr key={r.id}>
-                <td>{r.id}</td>
+              <tr key={r._id}>
+                <td>{r._id}</td>
                 <td>{r.orderId}</td>
-                <td>{r.customer}</td>
-                <td>${r.amount}</td>
-                <td>{r.paymentMethod}</td>
-                <td>{new Date(r.date).toLocaleString()}</td>
+                <td>{r.customerName}</td>
+                <td>Ksh {r.totalAmount}</td>
+                <td>{new Date(r.dateGenerated).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
