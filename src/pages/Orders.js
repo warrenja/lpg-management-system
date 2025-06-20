@@ -59,13 +59,32 @@ const Orders = ({ role, username, onPlaceOrder }) => {
     return false;
   });
 
-  const handleAssignDriver = (orderId, driver) => {
+const handleAssignDriver = async (orderId, driver) => {
+  try {
+    // 1. Send to backend
+    const response = await fetch(`${backendUrl}/orders/${orderId}/driver`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ driver }),
+    });
+
+    if (!response.ok) throw new Error("Failed to assign driver");
+
+    const updatedOrder = await response.json();
+
+    // 2. Update frontend state with backend response
     setOrders((prev) =>
       prev.map((order) =>
-        order._id === orderId ? { ...order, assignedDriver: driver } : order
+        order._id === updatedOrder._id ? updatedOrder : order
       )
     );
-  };
+  } catch (error) {
+    console.error("Driver assignment error:", error);
+    alert("❌ Could not assign driver.");
+  }
+};
 
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
