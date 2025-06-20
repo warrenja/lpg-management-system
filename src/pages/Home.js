@@ -25,6 +25,7 @@ import {
   Bar
 } from "recharts";
 
+// Icon colors
 const iconColors = ["#ff1744", "#00e676", "#ff9100", "#2979ff", "#6a1b9a"];
 
 const sidebarItems = [
@@ -64,13 +65,13 @@ export default function Home() {
     borderRadius: 20,
     display: "inline-block",
     marginBottom: "40px",
-    width: "700px",
-    maxWidth: "90%",
+    width: "700px",   // Add fixed width to make it wider
+    maxWidth: "90%",  // Optionally limit max width on smaller screens
   };
 
   const iconGridStyle = {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
+    gridTemplateColumns: "repeat(3, 1fr)", // 3 columns only
     rowGap: "60px",
     columnGap: "120px",
     justifyItems: "center",
@@ -86,32 +87,23 @@ export default function Home() {
 
   return (
     <div>
-      {/* Message */}
-      <div style={{ textAlign: "center", margin: "20px", fontSize: "18px", color: "#555" }}>
-        Please log in to access full features.
-      </div>
-
-      {/* Icons Grid */}
-      <div style={{ display: "flex", justifyContent: "center" }}>
-        <div style={commonBackgroundStyle}>
-          <div style={iconGridStyle}>
-            {sidebarItems.map(({ name, path, icon, color }) => (
-              <Link
-                key={name}
-                to={path}
-                style={{
-                  textDecoration: "none",
-                  textAlign: "center",
-                  color: color,
-                }}
-              >
-                <div style={{ fontSize: iconSize }}>{icon}</div>
-                <div style={iconTextStyle}>{name}</div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+{/* Icons Grid */}
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <div style={commonBackgroundStyle}>
+    <div style={iconGridStyle}>
+      {sidebarItems.map(({ name, path, icon, color }) => (
+        <Link
+          key={name}
+          to={path}
+          style={{ textDecoration: "none", textAlign: "center", color: color }}
+        >
+          <div style={{ fontSize: iconSize }}>{icon}</div>
+          <div style={iconTextStyle}>{name}</div>
+        </Link>
+      ))}
+    </div>
+  </div>
+</div>
 
       {/* Pie Chart */}
       <div style={{ width: "100%", height: 300, marginBottom: "40px" }}>
@@ -138,19 +130,19 @@ export default function Home() {
       </div>
 
       {/* Bar Chart */}
-      <div style={{ width: "100%", height: 300, marginBottom: "40px" }}>
-        <ResponsiveContainer>
-          <BarChart data={lineData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="sales" fill="#8884d8" />
-            <Bar dataKey="inventory" fill="#82ca9d" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+<div style={{ width: "100%", height: 300, marginBottom: "40px" }}>
+  <ResponsiveContainer>
+    <BarChart data={lineData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="month" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey="sales" fill="#8884d8" />
+      <Bar dataKey="inventory" fill="#82ca9d" />
+    </BarChart>
+  </ResponsiveContainer>
+</div>
 
       {/* Line Chart */}
       <div style={{ width: "100%", height: 300 }}>
