@@ -1,7 +1,7 @@
 // src/components/Header.js
 import React, { useState, useRef, useEffect } from "react";
 import { FaBars, FaUserCircle, FaBell } from "react-icons/fa";
-import "./Header.css"; // Ensure this CSS file contains .notification-badge
+import "./Header.css"; // Make sure .notification-badge exists in this CSS file
 
 const headerStyle = {
   height: "60px",
@@ -23,12 +23,12 @@ const headerStyle = {
 
 const profileDropdownStyle = {
   position: "absolute",
-  right: 20,
+  right: 0,
   top: 60,
   backgroundColor: "white",
-  boxShadow: "0 2px 5px rgb(245, 239, 239)",
+  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
   borderRadius: "6px",
-  width: "150px",
+  width: "160px",
   zIndex: 1300,
 };
 
@@ -38,6 +38,7 @@ const dropdownItemStyle = {
   borderBottom: "1px solid #eee",
   fontWeight: "600",
   color: "#000",
+  backgroundColor: "#fff",
 };
 
 function getGreeting() {
@@ -47,7 +48,14 @@ function getGreeting() {
   return "Good evening";
 }
 
-export default function Header({ username, onToggleSidebar, onSignupClick, newOrderNotifications }) {
+export default function Header({
+  username,
+  user,
+  onToggleSidebar,
+  onSignupClick,
+  onLogout,
+  newOrderNotifications = 0,
+}) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -66,7 +74,7 @@ export default function Header({ username, onToggleSidebar, onSignupClick, newOr
       <div style={{ display: "flex", alignItems: "center" }}>
         <FaBars
           onClick={onToggleSidebar}
-          style={{ cursor: "pointer", fontSize: "24px", marginRight: 20, color: "#fff" }}
+          style={{ cursor: "pointer", fontSize: "24px", marginRight: 20 }}
           title="Toggle Sidebar"
         />
         <span>
@@ -77,29 +85,39 @@ export default function Header({ username, onToggleSidebar, onSignupClick, newOr
       <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
         {/* Notification Bell */}
         <div style={{ position: "relative", marginRight: 20 }}>
-          <FaBell style={{ fontSize: "24px", cursor: "pointer", color: "#fff" }} title="Notifications" />
+          <FaBell style={{ fontSize: "24px", cursor: "pointer" }} title="Notifications" />
           {newOrderNotifications > 0 && (
             <span className="notification-badge">{newOrderNotifications}</span>
           )}
         </div>
 
-        {/* Profile Icon & Dropdown */}
+        {/* Profile Icon and Dropdown */}
         <div style={{ position: "relative" }} ref={dropdownRef}>
           <FaUserCircle
-            style={{ fontSize: "30px", cursor: "pointer", color: "#fff" }}
+            style={{ fontSize: "30px", cursor: "pointer" }}
             onClick={() => setDropdownOpen(!dropdownOpen)}
             title="Profile"
           />
           {dropdownOpen && (
             <div style={profileDropdownStyle}>
-              {!username && (
-                <div style={dropdownItemStyle} onClick={onSignupClick}>
-                  Sign Up
+              {!user && (
+                <>
+                  <div style={dropdownItemStyle} onClick={onSignupClick}>
+                    Sign Up
+                  </div>
+                  <div
+                    style={dropdownItemStyle}
+                    onClick={() => (window.location.href = "/login")}
+                  >
+                    Login
+                  </div>
+                </>
+              )}
+              {user && (
+                <div style={dropdownItemStyle} onClick={onLogout}>
+                  Logout
                 </div>
               )}
-              <div style={dropdownItemStyle} onClick={() => alert("Logout clicked")}>
-                Logout
-              </div>
             </div>
           )}
         </div>

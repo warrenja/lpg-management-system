@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -30,7 +36,7 @@ export default function App() {
 
   const contentStyle = {
     marginTop: "60px",
-    marginLeft: sidebarOpen ? "220px" : "0",
+    marginLeft: sidebarOpen && user ? "220px" : "0",
     padding: "20px",
     transition: "margin-left 0.3s ease-in-out",
     minHeight: "calc(100vh - 60px)",
@@ -51,6 +57,7 @@ export default function App() {
   const LoginForm = () => {
     const [formData, setFormData] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -67,6 +74,7 @@ export default function App() {
       if (foundUser) {
         setUser(foundUser);
         setError("");
+        navigate("/"); // Redirect to home after login
       } else {
         setError("Invalid username or password");
       }
@@ -116,100 +124,95 @@ export default function App() {
         username={user?.username || "Guest"}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onSignupClick={() => setShowSignup(true)}
+        onLogout={() => setUser(null)}
+        user={user}
       />
 
       {user && <Sidebar isOpen={sidebarOpen} role={role} />}
 
-      {!user && !showSignup && (
-        <main style={{ ...contentStyle, marginLeft: 0 }}>
-          <LoginForm />
-        </main>
-      )}
+      <main style={user ? contentStyle : { ...contentStyle, marginLeft: 0 }}>
+        <Routes>
+          {/* Landing page is always Home */}
+          <Route path="/" element={<Home user={user} />} />
 
-      {showSignup && (
-        <div style={{ ...contentStyle, marginLeft: 0 }}>
-          <Signup onSignupSuccess={handleSignupSuccess} />
-        </div>
-      )}
+          {!user && !showSignup && <Route path="/login" element={<LoginForm />} />}
+          {!user && showSignup && (
+            <Route path="/signup" element={<Signup onSignupSuccess={handleSignupSuccess} />} />
+          )}
 
-      {user && (
-        <main style={contentStyle}>
-          <Routes>
-            <Route path="/" element={<Home />} />
+          {user && (
+            <>
+              {role === "admin" && (
+                <>
+                  <Route path="/customers" element={<Customers />} />
+                  <Route path="/sales" element={<Sales />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/add-data" element={<AddData />} />
+                  <Route path="/inventory" element={<Inventory />} />
+                  <Route
+                    path="/orders"
+                    element={
+                      <Orders
+                        role={role}
+                        username={user.username}
+                        notifications={orderNotifications}
+                        onPlaceOrder={handleNewOrder}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/deliveries"
+                    element={<Deliveries role={role} username={user.username} />}
+                  />
+                  <Route
+                    path="/receipts"
+                    element={<Receipts role={role} username={user.username} />}
+                  />
+                </>
+              )}
 
-            {/* Admin Routes */}
-            {role === "admin" && (
-              <>
-                <Route path="/customers" element={<Customers />} />
-                <Route path="/sales" element={<Sales />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/add-data" element={<AddData />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route
-                  path="/orders"
-                  element={
-                    <Orders
-                      role={role}
-                      username={user.username}
-                      notifications={orderNotifications}
-                      onPlaceOrder={handleNewOrder}
-                    />
-                  }
-                />
-                <Route
-                  path="/deliveries"
-                  element={<Deliveries role={role} username={user.username} />}
-                />
-                <Route
-                  path="/receipts"
-                  element={<Receipts role={role} username={user.username} />}
-                />
-              </>
-            )}
+              {role === "customer" && (
+                <>
+                  <Route path="/inventory" element={<Inventory />} />
+                  <Route
+                    path="/orders"
+                    element={
+                      <Orders
+                        role={role}
+                        username={user.username}
+                        onPlaceOrder={handleNewOrder}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/deliveries"
+                    element={<Deliveries role={role} username={user.username} />}
+                  />
+                  <Route
+                    path="/receipts"
+                    element={<Receipts role={role} username={user.username} />}
+                  />
+                </>
+              )}
 
-            {/* Customer Routes */}
-            {role === "customer" && (
-              <>
-                <Route path="/inventory" element={<Inventory />} />
-                <Route
-                  path="/orders"
-                  element={
-                    <Orders
-                      role={role}
-                      username={user.username}
-                      onPlaceOrder={handleNewOrder}
-                    />
-                  }
-                />
-                <Route
-                  path="/deliveries"
-                  element={<Deliveries role={role} username={user.username} />}
-                />
-                <Route
-                  path="/receipts"
-                  element={<Receipts role={role} username={user.username} />}
-                />
-              </>
-            )}
+              {role === "driver" && (
+                <>
+                  <Route
+                    path="/deliveries"
+                    element={<Deliveries role={role} username={user.username} />}
+                  />
+                  <Route
+                    path="/orders"
+                    element={<Orders role={role} username={user.username} />}
+                  />
+                </>
+              )}
+            </>
+          )}
 
-            {/* Driver Routes */}
-            {role === "driver" && (
-              <>
-                <Route
-                  path="/deliveries"
-                  element={<Deliveries role={role} username={user.username} />}
-                />
-                <Route
-                  path="/orders"
-                  element={<Orders role={role} username={user.username} />}
-                />
-              </>
-            )}
-
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </main>
-      )}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
     </Router>
   );
 }
