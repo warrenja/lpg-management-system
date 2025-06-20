@@ -5,14 +5,12 @@ const Receipts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "";
-
   useEffect(() => {
     const fetchReceipts = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/receipts`);
+        const response = await fetch("/receipts");
         if (!response.ok) {
-          throw new Error(`Failed to fetch receipts: ${response.statusText}`);
+          throw new Error("Failed to fetch receipts");
         }
         const data = await response.json();
         setReceipts(data);
@@ -24,35 +22,45 @@ const Receipts = () => {
     };
 
     fetchReceipts();
-  }, [BASE_URL]);
+  }, []);
 
   if (loading) return <p>Loading receipts...</p>;
   if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Receipts</h1>
+      <h1>Receipts & Reports</h1>
       {receipts.length === 0 ? (
         <p>No receipts found.</p>
       ) : (
-        <table border="1" cellPadding="8" cellSpacing="0" style={{ width: "100%" }}>
-          <thead style={{ backgroundColor: "#f4f4f4" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginTop: "20px",
+            boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          }}
+        >
+          <thead style={{ backgroundColor: "#f8f8f8" }}>
             <tr>
-              <th>Receipt ID</th>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th>Total Amount</th>
-              <th>Date Generated</th>
+              <th style={th}>Receipt ID</th>
+              <th style={th}>Order ID</th>
+              <th style={th}>Customer</th>
+              <th style={th}>Total (Ksh)</th>
+              <th style={th}>Date</th>
             </tr>
           </thead>
           <tbody>
             {receipts.map((r) => (
               <tr key={r._id}>
-                <td>{r._id}</td>
-                <td>{r.orderId}</td>
-                <td>{r.customerName}</td>
-                <td>Ksh {r.totalAmount}</td>
-                <td>{new Date(r.dateGenerated).toLocaleString()}</td>
+                <td style={td}>{r._id}</td>
+                <td style={td}>{r.orderId}</td>
+                <td style={td}>{r.customerName}</td>
+                <td style={td}>Ksh {r.totalAmount}</td>
+                <td style={td}>
+                  {new Date(r.dateGenerated).toLocaleDateString()}{" "}
+                  {new Date(r.dateGenerated).toLocaleTimeString()}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -60,6 +68,17 @@ const Receipts = () => {
       )}
     </div>
   );
+};
+
+const th = {
+  padding: "10px",
+  textAlign: "left",
+  borderBottom: "2px solid #ccc",
+};
+
+const td = {
+  padding: "10px",
+  borderBottom: "1px solid #eee",
 };
 
 export default Receipts;
