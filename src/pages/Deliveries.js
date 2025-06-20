@@ -33,6 +33,7 @@ export default function Deliveries({ role, username }) {
         <table className="delivery-table">
           <thead>
             <tr>
+              <th>Delivery ID</th>
               <th>Order ID</th>
               <th>Customer</th>
               <th>Item</th>
@@ -43,7 +44,8 @@ export default function Deliveries({ role, username }) {
           </thead>
           <tbody>
             {deliveries.map((d) => (
-              <tr key={d.id}>
+              <tr key={d._id}>
+                <td>{d._id}</td>
                 <td>{d.orderId}</td>
                 <td>{d.customer}</td>
                 <td>{d.item}</td>

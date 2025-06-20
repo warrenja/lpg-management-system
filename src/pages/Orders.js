@@ -21,11 +21,10 @@ const Orders = ({ role, username, onPlaceOrder }) => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(`${backendUrl}/orders`);
-        if (!response.ok) throw new Error("Failed to fetch orders");
         const data = await response.json();
         setOrders(data);
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error("Error fetching orders", err);
       }
     };
 
@@ -41,7 +40,7 @@ const Orders = ({ role, username, onPlaceOrder }) => {
     doc.text("Smart Gas Receipt", 10, 15);
 
     doc.setFontSize(12);
-    doc.text(`Order ID: ${order.id}`, 10, 30);
+    doc.text(`Order ID: ${order._id}`, 10, 30);
     doc.text(`Customer: ${order.customer}`, 10, 40);
     doc.text(`Item: ${order.item}`, 10, 50);
     doc.text(`Amount: ${order.amount}`, 10, 60);
@@ -50,7 +49,7 @@ const Orders = ({ role, username, onPlaceOrder }) => {
 
     doc.text("Thank you for shopping with Smart Gas!", 10, 100);
 
-    doc.save(`Receipt_Order_${order.id}.pdf`);
+    doc.save(`Receipt_Order_${order._id}.pdf`);
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -63,7 +62,7 @@ const Orders = ({ role, username, onPlaceOrder }) => {
   const handleAssignDriver = (orderId, driver) => {
     setOrders((prev) =>
       prev.map((order) =>
-        order.id === orderId ? { ...order, assignedDriver: driver } : order
+        order._id === orderId ? { ...order, assignedDriver: driver } : order
       )
     );
   };
@@ -98,38 +97,13 @@ const Orders = ({ role, username, onPlaceOrder }) => {
 
       const savedOrder = await orderRes.json();
 
-      await fetch(`${backendUrl}/sales`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: savedOrder.id,
-          item: savedOrder.item,
-          amount: savedOrder.amount,
-          date: new Date().toISOString(),
-          customer: savedOrder.customer,
-        }),
-      });
-
-      await fetch(`${backendUrl}/deliveries`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: savedOrder.id,
-          customer: savedOrder.customer,
-          address: "Unknown",
-          item: savedOrder.item,
-          driver: null,
-          status: "Pending",
-        }),
-      });
-
-      setOrders((prevOrders) => [savedOrder, ...prevOrders]);
+      setOrders((prev) => [savedOrder, ...prev]);
       setNewOrderItem("");
       setMessage("✅ Order placed successfully");
 
       if (onPlaceOrder) onPlaceOrder(savedOrder);
     } catch (err) {
-      console.error("❌ Order placement error:", err);
+      console.error("Order placement error:", err);
       setMessage("❌ Could not place order.");
     } finally {
       setLoading(false);
@@ -143,16 +117,12 @@ const Orders = ({ role, username, onPlaceOrder }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (!response.ok) throw new Error("Failed to update status");
-
       const updatedOrder = await response.json();
-
       setOrders((prev) =>
-        prev.map((order) => (order.id === updatedOrder.id ? updatedOrder : order))
+        prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o))
       );
     } catch (err) {
-      console.error(err);
-      alert("Error updating order status");
+      console.error("Error updating order status", err);
     }
   };
 
@@ -202,9 +172,11 @@ const Orders = ({ role, username, onPlaceOrder }) => {
           </thead>
           <tbody>
             {filteredOrders.map((order) => (
-              <tr key={order.id} className={getStatusClass(order.status)}>
-                <td>{order.id}</td>
-                {(role === "admin" || role === "driver") && <td>{order.customer}</td>}
+              <tr key={order._id} className={getStatusClass(order.status)}>
+                <td>{order._id}</td>
+                {(role === "admin" || role === "driver") && (
+                  <td>{order.customer}</td>
+                )}
                 <td>{order.item}</td>
                 <td>{order.amount}</td>
                 <td>{order.status}</td>
@@ -212,7 +184,7 @@ const Orders = ({ role, username, onPlaceOrder }) => {
                 {role === "admin" && (
                   <td>
                     <AssignDriver
-                      orderId={order.id}
+                      orderId={order._id}
                       assignedDriver={order.assignedDriver}
                       onAssign={handleAssignDriver}
                     />
@@ -223,7 +195,9 @@ const Orders = ({ role, username, onPlaceOrder }) => {
                   <td>
                     <select
                       value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                      onChange={(e) =>
+                        handleStatusChange(order._id, e.target.value)
+                      }
                     >
                       <option value="Pending">Pending</option>
                       <option value="Confirmed">Confirmed</option>
