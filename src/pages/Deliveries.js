@@ -4,20 +4,17 @@ import "./Deliveries.css";
 
 export default function Deliveries({ role, username }) {
   const [deliveries, setDeliveries] = useState([]);
-
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
     const fetchDeliveries = async () => {
       try {
-        const response = await fetch(`${backendUrl}/orders`);
+        const response = await fetch(`${backendUrl}/deliveries`);
         const data = await response.json();
 
         const filtered = data.filter(
-          (order) =>
-            order.status !== "Pending" &&
-            order.assignedDriver &&
-            (role === "admin" || order.assignedDriver === username)
+          (delivery) =>
+            role === "admin" || delivery.driver === username
         );
 
         setDeliveries(filtered);
@@ -38,23 +35,25 @@ export default function Deliveries({ role, username }) {
         <table className="delivery-table">
           <thead>
             <tr>
+              <th>Delivery ID</th>
               <th>Order ID</th>
               <th>Customer</th>
               <th>Item</th>
-              <th>Amount</th>
               <th>Status</th>
               <th>Driver</th>
+              <th>Assigned At</th>
             </tr>
           </thead>
           <tbody>
             {deliveries.map((d) => (
               <tr key={d.id}>
                 <td>{d.id}</td>
+                <td>{d.orderId}</td>
                 <td>{d.customer}</td>
                 <td>{d.item}</td>
-                <td>{d.amount}</td>
                 <td>{d.status}</td>
-                <td>{d.assignedDriver}</td>
+                <td>{d.driver}</td>
+                <td>{new Date(d.assignedAt).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
