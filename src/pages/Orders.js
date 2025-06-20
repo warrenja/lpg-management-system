@@ -68,77 +68,74 @@ const Orders = ({ role, username, onPlaceOrder }) => {
     );
   };
 
-const handleOrderSubmit = async (e) => {
-  e.preventDefault();
-  if (!newOrderItem) return;
+  const handleOrderSubmit = async (e) => {
+    e.preventDefault();
+    if (!newOrderItem) return;
 
-  const selectedItem = itemOptions.find((item) => item.name === newOrderItem);
-  if (!selectedItem) return;
+    const selectedItem = itemOptions.find((item) => item.name === newOrderItem);
+    if (!selectedItem) return;
 
-  const newOrder = {
-    customerId: username,
-    customer: username.charAt(0).toUpperCase() + username.slice(1),
-    item: selectedItem.name,
-    amount: selectedItem.amount,
-    status: "Pending",
-    assignedDriver: null,
+    const newOrder = {
+      customerId: username,
+      customer: username.charAt(0).toUpperCase() + username.slice(1),
+      item: selectedItem.name,
+      amount: selectedItem.amount,
+      status: "Pending",
+      assignedDriver: null,
+    };
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const orderRes = await fetch(`${backendUrl}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOrder),
+      });
+
+      if (!orderRes.ok) throw new Error("Order creation failed");
+
+      const savedOrder = await orderRes.json();
+
+      await fetch(`${backendUrl}/sales`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: savedOrder.id,
+          item: savedOrder.item,
+          amount: savedOrder.amount,
+          date: new Date().toISOString(),
+          customer: savedOrder.customer,
+        }),
+      });
+
+      await fetch(`${backendUrl}/deliveries`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: savedOrder.id,
+          customer: savedOrder.customer,
+          address: "Unknown",
+          item: savedOrder.item,
+          driver: null,
+          status: "Pending",
+        }),
+      });
+
+      setOrders((prevOrders) => [savedOrder, ...prevOrders]);
+      setNewOrderItem("");
+      setMessage("✅ Order placed successfully");
+
+      if (onPlaceOrder) onPlaceOrder(savedOrder);
+    } catch (err) {
+      console.error("❌ Order placement error:", err);
+      setMessage("❌ Could not place order.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  setLoading(true);
-  setMessage("");
-
-  try {
-    // 1. Create Order
-    const orderRes = await fetch(`${backendUrl}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder),
-    });
-
-    if (!orderRes.ok) throw new Error("Order creation failed");
-
-    const savedOrder = await orderRes.json();
-
-    // 2. Record Sale
-    await fetch(`${backendUrl}/sales`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: savedOrder.id,
-        item: savedOrder.item,
-        amount: savedOrder.amount,
-        date: new Date().toISOString(),
-        customer: savedOrder.customer,
-      }),
-    });
-
-    // 3. Create Delivery Record
-    await fetch(`${backendUrl}/deliveries`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: savedOrder.id,
-        customerId: savedOrder.customerId,
-        driverId: null, // to be assigned later
-        status: "Pending",
-        scheduledAt: new Date().toISOString(),
-      }),
-    });
-
-    setOrders((prevOrders) => [savedOrder, ...prevOrders]);
-    setNewOrderItem("");
-    setMessage("✅ Order placed successfully");
-
-    if (onPlaceOrder) onPlaceOrder(savedOrder);
-  } catch (err) {
-    console.error("❌ Order placement error:", err);
-    setMessage("❌ Could not place order.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // Admin updates status handler
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       const response = await fetch(`${backendUrl}/orders/${orderId}/status`, {
@@ -232,7 +229,6 @@ const handleOrderSubmit = async (e) => {
                       <option value="Confirmed">Confirmed</option>
                       <option value="In Transit">In Transit</option>
                       <option value="Delivered">Delivered</option>
-
                     </select>
                   </td>
                 )}
