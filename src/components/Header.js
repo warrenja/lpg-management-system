@@ -47,7 +47,15 @@ function getGreeting() {
   return "Good evening";
 }
 
-export default function Header({ username, onToggleSidebar, onSignupClick, newOrderNotifications }) {
+export default function Header({
+  username,
+  onToggleSidebar,
+  onSignupClick,
+  onLoginClick,
+  onLogout,
+  newOrderNotifications,
+  user,
+}) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -77,7 +85,10 @@ export default function Header({ username, onToggleSidebar, onSignupClick, newOr
       <div style={{ display: "flex", alignItems: "center", position: "relative" }}>
         {/* Notification Bell */}
         <div style={{ position: "relative", marginRight: 20 }}>
-          <FaBell style={{ fontSize: "24px", cursor: "pointer", color: "#fff" }} title="Notifications" />
+          <FaBell
+            style={{ fontSize: "24px", cursor: "pointer", color: "#fff" }}
+            title="Notifications"
+          />
           {newOrderNotifications > 0 && (
             <span className="notification-badge">{newOrderNotifications}</span>
           )}
@@ -92,17 +103,17 @@ export default function Header({ username, onToggleSidebar, onSignupClick, newOr
           />
           {dropdownOpen && (
             <div style={profileDropdownStyle}>
-              {!username || username === "Guest" ? (
+              {!user ? (
                 <>
                   <div style={dropdownItemStyle} onClick={onSignupClick}>
                     Sign Up
                   </div>
-                  <div style={dropdownItemStyle} onClick={() => window.location.href = "/"}>
+                  <div style={dropdownItemStyle} onClick={onLoginClick}>
                     Log In
                   </div>
                 </>
               ) : (
-                <div style={dropdownItemStyle} onClick={() => alert("Logout clicked")}>
+                <div style={dropdownItemStyle} onClick={onLogout}>
                   Logout
                 </div>
               )}

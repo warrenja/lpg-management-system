@@ -27,10 +27,71 @@ const initialUsers = [
   { username: "john", password: "John123", role: "customer" },
 ];
 
+// Separate component to allow navigate hook
+function LoginFormWrapper({ users, setUser, setShowLogin }) {
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const foundUser = users.find(
+      (u) =>
+        u.username.toLowerCase() === formData.username.toLowerCase() &&
+        u.password === formData.password
+    );
+    if (foundUser) {
+      setUser(foundUser);
+      setError("");
+      setShowLogin(false);
+      navigate("/");
+    } else {
+      setError("Invalid username or password");
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 300, margin: "auto", padding: 20 }}>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Username:
+          <input
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <br />
+        <label>
+          Password:
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <br />
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <button type="submit">Log In</button>
+      </form>
+    </div>
+  );
+}
+
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [users, setUsers] = useState(initialUsers);
   const [orderNotifications, setOrderNotifications] = useState([]);
 
@@ -54,90 +115,50 @@ export default function App() {
     setOrderNotifications((prev) => [...prev, order]);
   };
 
-  const LoginForm = () => {
-    const [formData, setFormData] = useState({ username: "", password: "" });
-    const [error, setError] = useState("");
-    const navigate = useNavigate();
-
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      const foundUser = users.find(
-        (u) =>
-          u.username.toLowerCase() === formData.username.toLowerCase() &&
-          u.password === formData.password
-      );
-      if (foundUser) {
-        setUser(foundUser);
-        setError("");
-        navigate("/"); // Redirect to home after login
-      } else {
-        setError("Invalid username or password");
-      }
-    };
-
-    return (
-      <div style={{ maxWidth: 300, margin: "auto", padding: 20 }}>
-        <h2>Login</h2>
-        <form onSubmit={handleSubmit}>
-          <label>
-            Username:
-            <input
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Password:
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </label>
-          <br />
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          <button type="submit">Log In</button>
-        </form>
-        <p style={{ marginTop: 20 }}>
-          No account?{" "}
-          <button onClick={() => setShowSignup(true)}>Sign Up</button>
-        </p>
-      </div>
-    );
-  };
-
   const role = user?.role;
 
   return (
     <Router>
       <Header
         username={user?.username || "Guest"}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        onSignupClick={() => setShowSignup(true)}
-        onLogout={() => setUser(null)}
         user={user}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        onSignupClick={() => {
+          setShowSignup(true);
+          setShowLogin(false);
+        }}
+        onLoginClick={() => {
+          setShowLogin(true);
+          setShowSignup(false);
+        }}
+        onLogout={() => setUser(null)}
       />
 
       {user && <Sidebar isOpen={sidebarOpen} role={role} />}
 
       <main style={user ? contentStyle : { ...contentStyle, marginLeft: 0 }}>
         <Routes>
-          {/* Landing page is always Home */}
+          {/* Always show Home */}
           <Route path="/" element={<Home user={user} />} />
 
-          {!user && !showSignup && <Route path="/login" element={<LoginForm />} />}
+          {/* Login and Signup conditionally */}
+          {!user && showLogin && (
+            <Route
+              path="/login"
+              element={
+                <LoginFormWrapper
+                  users={users}
+                  setUser={setUser}
+                  setShowLogin={setShowLogin}
+                />
+              }
+            />
+          )}
           {!user && showSignup && (
-            <Route path="/signup" element={<Signup onSignupSuccess={handleSignupSuccess} />} />
+            <Route
+              path="/signup"
+              element={<Signup onSignupSuccess={handleSignupSuccess} />}
+            />
           )}
 
           {user && (
