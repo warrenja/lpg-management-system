@@ -1,4 +1,3 @@
-// src/pages/Deliveries.js
 import React, { useEffect, useState } from "react";
 import "./Deliveries.css";
 
@@ -9,17 +8,16 @@ export default function Deliveries({ role, username }) {
   useEffect(() => {
     const fetchDeliveries = async () => {
       try {
-        const response = await fetch(`${backendUrl}/deliveries`);
-        const data = await response.json();
+        const res = await fetch(`${backendUrl}/deliveries`);
+        const data = await res.json();
 
         const filtered = data.filter(
-          (delivery) =>
-            role === "admin" || delivery.driver === username
+          (d) => role === "admin" || d.driver === username
         );
 
         setDeliveries(filtered);
       } catch (err) {
-        console.error("Failed to load deliveries", err);
+        console.error("Failed to fetch deliveries", err);
       }
     };
 
@@ -35,7 +33,6 @@ export default function Deliveries({ role, username }) {
         <table className="delivery-table">
           <thead>
             <tr>
-              <th>Delivery ID</th>
               <th>Order ID</th>
               <th>Customer</th>
               <th>Item</th>
@@ -47,7 +44,6 @@ export default function Deliveries({ role, username }) {
           <tbody>
             {deliveries.map((d) => (
               <tr key={d.id}>
-                <td>{d.id}</td>
                 <td>{d.orderId}</td>
                 <td>{d.customer}</td>
                 <td>{d.item}</td>
