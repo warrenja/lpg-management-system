@@ -229,7 +229,10 @@ const handleOrderSubmit = async (e) => {
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                     >
                       <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="In Transit">In Transit</option>
                       <option value="Delivered">Delivered</option>
+
                     </select>
                   </td>
                 )}
