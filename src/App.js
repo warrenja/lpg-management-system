@@ -1,11 +1,6 @@
+// src/App.js
 import React, { useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
@@ -18,8 +13,9 @@ import Sales from "./pages/Sales";
 import Reports from "./pages/Reports";
 import AddData from "./pages/AddData";
 import Deliveries from "./pages/Deliveries";
+
 import Signup from "./components/Signup";
-import Receipts from "./pages/Receipts";
+import Receipts from "./pages/Receipts"; // <-- import new Receipts component
 
 const initialUsers = [
   { username: "janice", password: "Janice94", role: "admin" },
@@ -27,77 +23,16 @@ const initialUsers = [
   { username: "john", password: "John123", role: "customer" },
 ];
 
-// Separate component to allow navigate hook
-function LoginFormWrapper({ users, setUser, setShowLogin }) {
-  const [formData, setFormData] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const foundUser = users.find(
-      (u) =>
-        u.username.toLowerCase() === formData.username.toLowerCase() &&
-        u.password === formData.password
-    );
-    if (foundUser) {
-      setUser(foundUser);
-      setError("");
-      setShowLogin(false);
-      navigate("/");
-    } else {
-      setError("Invalid username or password");
-    }
-  };
-
-  return (
-    <div style={{ maxWidth: 300, margin: "auto", padding: 20 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Username:
-          <input
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <br />
-        <label>
-          Password:
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <br />
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Log In</button>
-      </form>
-    </div>
-  );
-}
-
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
   const [showSignup, setShowSignup] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [users, setUsers] = useState(initialUsers);
   const [orderNotifications, setOrderNotifications] = useState([]);
 
   const contentStyle = {
     marginTop: "60px",
-    marginLeft: sidebarOpen && user ? "220px" : "0",
+    marginLeft: sidebarOpen ? "220px" : "0",
     padding: "20px",
     transition: "margin-left 0.3s ease-in-out",
     minHeight: "calc(100vh - 60px)",
@@ -115,125 +50,160 @@ export default function App() {
     setOrderNotifications((prev) => [...prev, order]);
   };
 
+  const LoginForm = () => {
+    const [formData, setFormData] = useState({ username: "", password: "" });
+    const [error, setError] = useState("");
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const foundUser = users.find(
+        (u) =>
+          u.username.toLowerCase() === formData.username.toLowerCase() &&
+          u.password === formData.password
+      );
+      if (foundUser) {
+        setUser(foundUser);
+        setError("");
+      } else {
+        setError("Invalid username or password");
+      }
+    };
+
+    return (
+      <div style={{ maxWidth: 300, margin: "auto", padding: 20 }}>
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Username:
+            <input
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Password:
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </label>
+          <br />
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          <button type="submit">Log In</button>
+        </form>
+        <p style={{ marginTop: 20 }}>
+          No account?{" "}
+          <button onClick={() => setShowSignup(true)}>Sign Up</button>
+        </p>
+      </div>
+    );
+  };
+
   const role = user?.role;
 
   return (
     <Router>
       <Header
         username={user?.username || "Guest"}
-        user={user}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        onSignupClick={() => {
-          setShowSignup(true);
-          setShowLogin(false);
-        }}
-        onLoginClick={() => {
-          setShowLogin(true);
-          setShowSignup(false);
-        }}
-        onLogout={() => setUser(null)}
+        onSignupClick={() => setShowSignup(true)}
       />
 
       {user && <Sidebar isOpen={sidebarOpen} role={role} />}
 
-      <main style={user ? contentStyle : { ...contentStyle, marginLeft: 0 }}>
-        <Routes>
-          {/* Always show Home */}
-          <Route path="/" element={<Home user={user} />} />
+      {!user && !showSignup && (
+        <main style={{ ...contentStyle, marginLeft: 0 }}>
+          <LoginForm />
+        </main>
+      )}
 
-          {/* Login and Signup conditionally */}
-          {!user && showLogin && (
-            <Route
-              path="/login"
-              element={
-                <LoginFormWrapper
-                  users={users}
-                  setUser={setUser}
-                  setShowLogin={setShowLogin}
+      {showSignup && (
+        <div style={{ ...contentStyle, marginLeft: 0 }}>
+          <Signup onSignupSuccess={handleSignupSuccess} />
+        </div>
+      )}
+
+      {user && (
+        <main style={contentStyle}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+
+            {/* Admin Routes */}
+            {role === "admin" && (
+              <>
+                <Route path="/customers" element={<Customers />} />
+                <Route path="/sales" element={<Sales />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/add-data" element={<AddData />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route
+                  path="/orders"
+                  element={
+                    <Orders
+                      role={role}
+                      username={user.username}
+                      notifications={orderNotifications}
+                      onPlaceOrder={handleNewOrder}
+                    />
+                  }
                 />
-              }
-            />
-          )}
-          {!user && showSignup && (
-            <Route
-              path="/signup"
-              element={<Signup onSignupSuccess={handleSignupSuccess} />}
-            />
-          )}
+                <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/receipts"
+                  element={<Receipts role={role} username={user.username} />}
+                />
+              </>
+            )}
 
-          {user && (
-            <>
-              {role === "admin" && (
-                <>
-                  <Route path="/customers" element={<Customers />} />
-                  <Route path="/sales" element={<Sales />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/add-data" element={<AddData />} />
-                  <Route path="/inventory" element={<Inventory />} />
-                  <Route
-                    path="/orders"
-                    element={
-                      <Orders
-                        role={role}
-                        username={user.username}
-                        notifications={orderNotifications}
-                        onPlaceOrder={handleNewOrder}
-                      />
-                    }
-                  />
-                  <Route
-                    path="/deliveries"
-                    element={<Deliveries role={role} username={user.username} />}
-                  />
-                  <Route
-                    path="/receipts"
-                    element={<Receipts role={role} username={user.username} />}
-                  />
-                </>
-              )}
+            {/* Customer Routes */}
+            {role === "customer" && (
+              <>
+                <Route path="/inventory" element={<Inventory />} />
+                <Route
+                  path="/orders"
+                  element={
+                    <Orders
+                      role={role}
+                      username={user.username}
+                      onPlaceOrder={handleNewOrder}
+                    />
+                  }
+                />
+                <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/receipts"
+                  element={<Receipts role={role} username={user.username} />}
+                />
+              </>
+            )}
 
-              {role === "customer" && (
-                <>
-                  <Route path="/inventory" element={<Inventory />} />
-                  <Route
-                    path="/orders"
-                    element={
-                      <Orders
-                        role={role}
-                        username={user.username}
-                        onPlaceOrder={handleNewOrder}
-                      />
-                    }
-                  />
-                  <Route
-                    path="/deliveries"
-                    element={<Deliveries role={role} username={user.username} />}
-                  />
-                  <Route
-                    path="/receipts"
-                    element={<Receipts role={role} username={user.username} />}
-                  />
-                </>
-              )}
+            {/* Driver Routes */}
+            {role === "driver" && (
+              <>
+                <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/orders"
+                  element={<Orders role={role} username={user.username} />}
+                />
+                {/* Driver does not have receipts access */}
+              </>
+            )}
 
-              {role === "driver" && (
-                <>
-                  <Route
-                    path="/deliveries"
-                    element={<Deliveries role={role} username={user.username} />}
-                  />
-                  <Route
-                    path="/orders"
-                    element={<Orders role={role} username={user.username} />}
-                  />
-                </>
-              )}
-            </>
-          )}
-
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+      )}
     </Router>
   );
 }
