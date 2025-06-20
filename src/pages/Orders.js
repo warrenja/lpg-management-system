@@ -88,26 +88,42 @@ const handleOrderSubmit = async (e) => {
   setMessage("");
 
   try {
-    console.log("Posting new order to backend URL:", `${backendUrl}/orders`);
-    console.log("Order payload:", newOrder);
-
-    const response = await fetch(`${backendUrl}/orders`, {
+    // 1. Create Order
+    const orderRes = await fetch(`${backendUrl}/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newOrder),
     });
 
-    console.log("Response status:", response.status);
+    if (!orderRes.ok) throw new Error("Order creation failed");
 
-    if (!response.ok) {
-      // Try to parse error message if any
-      const errorData = await response.json().catch(() => null);
-      console.error("Backend error response:", errorData);
-      throw new Error("Non-successful response from backend");
-    }
+    const savedOrder = await orderRes.json();
 
-    const savedOrder = await response.json();
-    console.log("Saved order received from backend:", savedOrder);
+    // 2. Record Sale
+    await fetch(`${backendUrl}/sales`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: savedOrder.id,
+        item: savedOrder.item,
+        amount: savedOrder.amount,
+        date: new Date().toISOString(),
+        customer: savedOrder.customer,
+      }),
+    });
+
+    // 3. Create Delivery Record
+    await fetch(`${backendUrl}/deliveries`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: savedOrder.id,
+        customerId: savedOrder.customerId,
+        driverId: null, // to be assigned later
+        status: "Pending",
+        scheduledAt: new Date().toISOString(),
+      }),
+    });
 
     setOrders((prevOrders) => [savedOrder, ...prevOrders]);
     setNewOrderItem("");

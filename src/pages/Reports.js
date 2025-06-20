@@ -1,35 +1,78 @@
-import React from 'react';
+// src/pages/Reports.js
+import React, { useEffect, useState } from "react";
 import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
-import './Reports.css'; // optional for custom styling
+} from "recharts";
+import "./Reports.css";
+
+const COLORS = ["#00C49F", "#FFBB28", "#0088FE", "#FF8042", "#FF6384", "#36A2EB"];
 
 const Reports = () => {
-  // Sample data
-  const customerLocationData = [
-    { name: 'Nairobi', customers: 5 },
-    { name: 'Mombasa', customers: 4 },
-    { name: 'Kisumu', customers: 3 },
-    { name: 'Eldoret', customers: 4 },
-    { name: 'Meru', customers: 4 },
-  ];
+  const [customerLocationData, setCustomerLocationData] = useState([]);
+  const [inventorySizeData, setInventorySizeData] = useState([]);
+  const [cylinderStatusData, setCylinderStatusData] = useState([]);
 
-  const inventorySizeData = [
-    { size: '6kg', count: 30 },
-    { size: '13kg', count: 40 },
-    { size: '50kg', count: 30 },
-  ];
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-  const cylinderStatusData = [
-    { status: 'Filled', count: 60 },
-    { status: 'Empty', count: 40 },
-  ];
+  useEffect(() => {
+    const fetchReportsData = async () => {
+      try {
+        // Fetch customers or sales data for location analysis
+        const salesRes = await fetch(`${backendUrl}/sales`);
+        const sales = await salesRes.json();
 
-  const COLORS = ['#00C49F', '#FFBB28', '#0088FE', '#FF8042'];
+        const locationCount = {};
+        const cylinderSizeCount = {};
+        let filled = 0, empty = 0;
+
+        sales.forEach((sale) => {
+          const location = sale.location || "Unknown"; // optional location field
+          const size = sale.item?.replace(" Cylinder", "") || "Unknown";
+
+          // Location
+          if (locationCount[location]) {
+            locationCount[location]++;
+          } else {
+            locationCount[location] = 1;
+          }
+
+          // Inventory size
+          if (cylinderSizeCount[size]) {
+            cylinderSizeCount[size]++;
+          } else {
+            cylinderSizeCount[size] = 1;
+          }
+
+          // Basic simulation for status breakdown (for example only)
+          const isFilled = sale.status === "Delivered" || sale.status === "Filled";
+          if (isFilled) filled++;
+          else empty++;
+        });
+
+        // Build chart datasets
+        setCustomerLocationData(
+          Object.entries(locationCount).map(([name, customers]) => ({ name, customers }))
+        );
+
+        setInventorySizeData(
+          Object.entries(cylinderSizeCount).map(([size, count]) => ({ size, count }))
+        );
+
+        setCylinderStatusData([
+          { status: "Filled", count: filled },
+          { status: "Empty", count: empty },
+        ]);
+      } catch (err) {
+        console.error("❌ Failed to fetch report data:", err);
+      }
+    };
+
+    fetchReportsData();
+  }, [backendUrl]);
 
   return (
     <div className="reports-page">
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Analytics Dashboard</h2>
+      <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Analytics Dashboard</h2>
 
       <div className="chart-container">
         <div className="chart-box">
@@ -59,7 +102,7 @@ const Reports = () => {
                 label
               >
                 {inventorySizeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`size-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
@@ -82,7 +125,7 @@ const Reports = () => {
                 label
               >
                 {cylinderStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`status-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
