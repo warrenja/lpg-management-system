@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
@@ -13,9 +12,8 @@ import Sales from "./pages/Sales";
 import Reports from "./pages/Reports";
 import AddData from "./pages/AddData";
 import Deliveries from "./pages/Deliveries";
-
 import Signup from "./components/Signup";
-import Receipts from "./pages/Receipts"; // <-- import new Receipts component
+import Receipts from "./pages/Receipts";
 
 const initialUsers = [
   { username: "janice", password: "Janice94", role: "admin" },
@@ -158,7 +156,10 @@ export default function App() {
                     />
                   }
                 />
-                <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/deliveries"
+                  element={<Deliveries role={role} username={user.username} />}
+                />
                 <Route
                   path="/receipts"
                   element={<Receipts role={role} username={user.username} />}
@@ -180,7 +181,10 @@ export default function App() {
                     />
                   }
                 />
-                <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/deliveries"
+                  element={<Deliveries role={role} username={user.username} />}
+                />
                 <Route
                   path="/receipts"
                   element={<Receipts role={role} username={user.username} />}
@@ -191,12 +195,14 @@ export default function App() {
             {/* Driver Routes */}
             {role === "driver" && (
               <>
-                <Route path="/deliveries" element={<Deliveries />} />
+                <Route
+                  path="/deliveries"
+                  element={<Deliveries role={role} username={user.username} />}
+                />
                 <Route
                   path="/orders"
                   element={<Orders role={role} username={user.username} />}
                 />
-                {/* Driver does not have receipts access */}
               </>
             )}
 
