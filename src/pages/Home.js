@@ -86,6 +86,11 @@ export default function Home() {
 
   return (
     <div>
+      {/* Message */}
+      <div style={{ textAlign: "center", margin: "20px", fontSize: "18px", color: "#555" }}>
+        Please log in to access full features.
+      </div>
+
       {/* Icons Grid */}
       <div style={{ display: "flex", justifyContent: "center" }}>
         <div style={commonBackgroundStyle}>
