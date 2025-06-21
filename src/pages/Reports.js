@@ -32,6 +32,9 @@ const Reports = () => {
       });
     });
 
+    csv += `\nTotal Orders,${reports.totalOrders}`;
+    csv += `\nTotal Revenue (Ksh),${reports.totalRevenue}`;
+
     const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -62,9 +65,9 @@ const Reports = () => {
         <p>Loading reports...</p>
       ) : (
         <div>
-          <p>
-            <strong>Total Orders:</strong> {reports.totalOrders}
-          </p>
+          <p><strong>Total Orders:</strong> {reports.totalOrders}</p>
+          <p><strong>Total Revenue:</strong> Ksh {reports.totalRevenue.toLocaleString()}</p>
+
           {Object.entries(reports.groupedByStatus).map(([status, orders]) => (
             <div key={status} style={{ marginBottom: "30px" }}>
               <h2>{status} Orders ({orders.length})</h2>
