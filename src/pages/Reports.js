@@ -1,123 +1,143 @@
-import React, { useEffect, useState } from "react";
-
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3000";
+// src/pages/Reports.js
+import React, { useState, useEffect } from "react";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const Reports = () => {
-  const [reports, setReports] = useState(null);
-  const [range, setRange] = useState("all");
+  const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+  const fetchReport = async () => {
+    try {
+      const url = new URL(`${backendUrl}/reports`);
+      if (from) url.searchParams.append("from", from);
+      if (to) url.searchParams.append("to", to);
+
+      const response = await fetch(url);
+      const data = await response.json();
+      setReport(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch reports");
+    }
+  };
 
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/reports?range=${range}`);
-        if (!res.ok) throw new Error("Failed to fetch reports");
-        const data = await res.json();
-        setReports(data);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-    fetchReports();
-  }, [range]);
+    fetchReport();
+  }, []);
 
-  const handleDownloadCSV = () => {
-    if (!reports) return;
-    let csv = "Status,Order ID,Customer,Item,Amount,Date,Time\n";
+  const handlePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("SmartGas Report", 14, 15);
+    doc.setFontSize(12);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 25);
+    doc.text(`Total Orders: ${report.totalOrders}`, 14, 35);
+    doc.text(`Total Revenue: KSh ${report.totalRevenue}`, 14, 45);
 
-    Object.entries(reports.groupedByStatus).forEach(([status, orders]) => {
-      orders.forEach((order) => {
-        csv += `${status},${order.id},${order.customer},${order.item},${order.amount},${order.date},${order.time}\n`;
+    let y = 55;
+
+    for (const [status, orders] of Object.entries(report.groupedByStatus)) {
+      doc.text(`${status} Orders`, 14, y);
+      y += 5;
+
+      const tableData = orders.map((o) => [
+        o.id,
+        o.customer,
+        o.item,
+        o.amount,
+        o.date,
+        o.time,
+      ]);
+
+      doc.autoTable({
+        head: [["ID", "Customer", "Item", "Amount", "Date", "Time"]],
+        body: tableData,
+        startY: y,
+        styles: { fontSize: 9 },
+        margin: { top: 10, left: 14, right: 14 },
       });
-    });
 
-    csv += `\nTotal Orders,${reports.totalOrders}`;
-    csv += `\nTotal Revenue (Ksh),${reports.totalRevenue}`;
+      y = doc.lastAutoTable.finalY + 10;
+    }
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `report_${range}_${new Date().toISOString()}.csv`;
-    link.click();
+    doc.save(`SmartGas_Report_${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Detailed Order Reports</h1>
+      <h1>Reports</h1>
 
       <div style={{ marginBottom: "20px" }}>
-        <label>Time Range: </label>
-        <select value={range} onChange={(e) => setRange(e.target.value)}>
-          <option value="all">All Time</option>
-          <option value="weekly">This Week</option>
-          <option value="monthly">This Month</option>
-          <option value="yearly">This Year</option>
-        </select>
-        <button onClick={handleDownloadCSV} style={{ marginLeft: "20px" }}>
-          📥 Download CSV
+        <label>
+          From:{" "}
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+          />
+        </label>
+        <label style={{ marginLeft: "20px" }}>
+          To:{" "}
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+          />
+        </label>
+        <button onClick={fetchReport} style={{ marginLeft: "20px" }}>
+          🔄 Load Report
+        </button>
+        <button onClick={handlePDF} disabled={!report} style={{ marginLeft: "10px" }}>
+          ⬇ Download PDF
         </button>
       </div>
 
-      {error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : !reports ? (
-        <p>Loading reports...</p>
-      ) : (
-        <div>
-          <p><strong>Total Orders:</strong> {reports.totalOrders}</p>
-          <p><strong>Total Revenue:</strong> Ksh {reports.totalRevenue.toLocaleString()}</p>
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-          {Object.entries(reports.groupedByStatus).map(([status, orders]) => (
+      {report && (
+        <>
+          <p>Total Orders: {report.totalOrders}</p>
+          <p>Total Revenue: KSh {report.totalRevenue}</p>
+
+          {Object.entries(report.groupedByStatus).map(([status, orders]) => (
             <div key={status} style={{ marginBottom: "30px" }}>
-              <h2>{status} Orders ({orders.length})</h2>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  boxShadow: "0 0 10px rgba(0,0,0,0.05)",
-                }}
-              >
-                <thead style={{ background: "#f8f8f8" }}>
+              <h3>{status} Orders</h3>
+              <table border="1" cellPadding="6" cellSpacing="0">
+                <thead>
                   <tr>
-                    <th style={th}>Order ID</th>
-                    <th style={th}>Customer</th>
-                    <th style={th}>Item</th>
-                    <th style={th}>Amount</th>
-                    <th style={th}>Date</th>
-                    <th style={th}>Time</th>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Item</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Time</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((order) => (
                     <tr key={order.id}>
-                      <td style={td}>{order.id}</td>
-                      <td style={td}>{order.customer}</td>
-                      <td style={td}>{order.item}</td>
-                      <td style={td}>{order.amount}</td>
-                      <td style={td}>{order.date}</td>
-                      <td style={td}>{order.time}</td>
+                      <td>{order.id}</td>
+                      <td>{order.customer}</td>
+                      <td>{order.item}</td>
+                      <td>{order.amount}</td>
+                      <td>{order.date}</td>
+                      <td>{order.time}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ))}
-        </div>
+        </>
       )}
     </div>
   );
-};
-
-const th = {
-  padding: "10px",
-  textAlign: "left",
-  borderBottom: "2px solid #ccc",
-};
-
-const td = {
-  padding: "10px",
-  borderBottom: "1px solid #eee",
 };
 
 export default Reports;
